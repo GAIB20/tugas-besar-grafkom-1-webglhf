@@ -10,12 +10,14 @@ export abstract class Model {
 
   abstract setGeometry(gl: WebGL2RenderingContext): void;
 
+  abstract getType(): string;
+
   // Draw the scene.
   draw(
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
-    positionBuffer: WebGLBuffer,
-    locations: {
+    attributes: {
+      positionBuffer: WebGLBuffer;
       positionLocation: number;
       colorLocation: WebGLUniformLocation;
       matrixLocation: WebGLUniformLocation;
@@ -25,6 +27,11 @@ export abstract class Model {
       translation: number[];
       angleInRadians: number;
       scale: number[];
+    } = {
+      color: new Color(0, 0, 0, 1),
+      translation: [0, 0],
+      angleInRadians: 0,
+      scale: [1, 1],
     }
   ) {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
@@ -33,16 +40,16 @@ export abstract class Model {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     // Clear the canvas.
-    // gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
 
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
     // Turn on the attribute
-    gl.enableVertexAttribArray(locations.positionLocation);
+    gl.enableVertexAttribArray(attributes.positionLocation);
 
     // Bind the position buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, attributes.positionBuffer);
 
     // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
     var size = 2; // 2 components per iteration
@@ -51,7 +58,7 @@ export abstract class Model {
     var stride = 0; // 0 = move forward size * sizeof(type) each iteration to get the next position
     var offset = 0; // start at the beginning of the buffer
     gl.vertexAttribPointer(
-      locations.positionLocation,
+      attributes.positionLocation,
       size,
       type,
       normalize,
@@ -60,7 +67,7 @@ export abstract class Model {
     );
 
     // set the color
-    gl.uniform4fv(locations.colorLocation, options.color.toArray());
+    gl.uniform4fv(attributes.colorLocation, options.color.toArray());
 
     // Compute the matrices
     var projectionMatrix = TransformationMatrix3.projection(
@@ -85,7 +92,7 @@ export abstract class Model {
       .flatten();
 
     // Set the matrix.
-    gl.uniformMatrix3fv(locations.matrixLocation, false, matrix);
+    gl.uniformMatrix3fv(attributes.matrixLocation, false, matrix);
 
     // Draw the geometry.
     var primitiveType = gl.TRIANGLES;

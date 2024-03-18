@@ -54,4 +54,8 @@ export class Rectangle extends Model {
       gl.STATIC_DRAW
     );
   }
+
+  getType(): string {
+    return "Rectangle";
+  }
 }
