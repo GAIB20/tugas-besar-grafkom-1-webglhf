@@ -1,8 +1,18 @@
+import { Color } from "./color";
+
 export class Point {
-  constructor(public x: number = 0, public y: number = 0) {}
+  constructor(
+    public x: number = 0,
+    public y: number = 0,
+    public color: Color = new Color(0, 0, 0, 1)
+  ) {}
 
   toAffineTransform(): number[] {
     return [this.x, this.y, 1];
+  }
+
+  toArray(): number[] {
+    return [this.x, this.y];
   }
 
   euclideanDistanceTo(other: Point) {
@@ -13,6 +23,13 @@ export class Point {
 
   isEqualsTo(other: Point) {
     return this.x === other.x && this.y === other.y;
+  }
+
+  withinTolerance(other: Point, tolerance: number) {
+    return (
+      Math.abs(this.x - other.x) <= tolerance &&
+      Math.abs(this.y - other.y) <= tolerance
+    );
   }
 
   multiplyMatrix(matrix: number[][]): Point {

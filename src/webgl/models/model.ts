@@ -7,14 +7,19 @@ export type SpecialAttribute = {
   name: string;
   type: string;
   setAttribute: (value: any) => void;
+  getAttribute: () => any;
 };
 
 export abstract class Model {
+  public isDrawing = false;
+
   abstract getType(): string;
 
   abstract getSpecialAttributes(): SpecialAttribute[];
 
   abstract setGeometry(gl: WebGL2RenderingContext): void;
+
+  abstract setColors(gl: WebGL2RenderingContext): void;
 
   abstract getVertices(): Point[];
 
@@ -26,6 +31,8 @@ export abstract class Model {
 
   abstract drawMode(gl: WebGL2RenderingContext): number;
 
+  abstract isPointInside(point: Point): boolean;
+
   // Draw the scene.
   draw(
     gl: WebGL2RenderingContext,
@@ -33,7 +40,8 @@ export abstract class Model {
     attributes: {
       positionBuffer: WebGLBuffer;
       positionLocation: number;
-      colorLocation: WebGLUniformLocation;
+      colorBuffer: WebGLBuffer;
+      colorLocation: number;
       matrixLocation: WebGLUniformLocation;
     },
     options: {
@@ -64,6 +72,8 @@ export abstract class Model {
 
     // Bind the position buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, attributes.positionBuffer);
+    // Set the geometry
+    this.setGeometry(gl);
 
     // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
     var size = 2; // 2 components per iteration
@@ -80,8 +90,28 @@ export abstract class Model {
       offset
     );
 
-    // set the color
-    gl.uniform4fv(attributes.colorLocation, options.color.toArray());
+    // Turn on the color attribute
+    gl.enableVertexAttribArray(attributes.colorLocation);
+
+    // Bind the color buffer.
+    gl.bindBuffer(gl.ARRAY_BUFFER, attributes.colorBuffer);
+    // Set the colors
+    this.setColors(gl);
+
+    // Tell the color attribute how to get data out of colorBuffer (ARRAY_BUFFER)
+    var size = 4; // 4 components per iteration
+    var type = gl.FLOAT; // the data is 32bit floats
+    var normalize = false; // don't normalize the data
+    var stride = 0; // 0 = move forward size * sizeof(type) each iteration to get the next position
+    var offset = 0; // start at the beginning of the buffer
+    gl.vertexAttribPointer(
+      attributes.colorLocation,
+      size,
+      type,
+      normalize,
+      stride,
+      offset
+    );
 
     // Compute the matrices
     var projectionMatrix = TransformationMatrix3.projection(
@@ -110,5 +140,14 @@ export abstract class Model {
 
     // Render the geometry.
     gl.drawArrays(this.drawMode(gl), 0, this.count());
+  }
+
+  getVerticeByPosition(
+    position: Point,
+    tolerance: number = 50
+  ): Point | undefined {
+    return this.getVertices().find((vertice) =>
+      vertice.withinTolerance(position, tolerance)
+    );
   }
 }
