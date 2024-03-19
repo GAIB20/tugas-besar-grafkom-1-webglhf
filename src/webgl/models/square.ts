@@ -2,11 +2,6 @@ import { Model } from "./model";
 import { Point } from "./primitives/point";
 
 export class Square extends Model {
-  /**
-   * vertices[0] is the center point
-   *
-   * vertices[1] is the end point
-   */
   private readonly vertices: [Point, Point, Point, Point] = [
     new Point(0, 0),
     new Point(0, 0),
@@ -92,35 +87,27 @@ export class Square extends Model {
     this.vertices[index] = vertice;
   }
 
+  getSize() {
+    return this.size;
+  }
+
   setSize(size: number) {
     throw new Error("Not implemented");
   }
 
   setGeometry(gl: WebGL2RenderingContext) {
-    const x1 = this.vertices[0].x;
-    const y1 = this.vertices[0].y;
-
-    const x2 = this.vertices[2].x;
-    const y2 = this.vertices[2].y;
-
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
         // First triangle
-        x1,
-        y1,
-        x2,
-        y1,
-        x1,
-        y2,
+        ...this.vertices[0].toArray(),
+        ...this.vertices[1].toArray(),
+        ...this.vertices[2].toArray(),
 
         // Second triangle
-        x1,
-        y2,
-        x2,
-        y1,
-        x2,
-        y2,
+        ...this.vertices[0].toArray(),
+        ...this.vertices[2].toArray(),
+        ...this.vertices[3].toArray(),
       ]),
       gl.STATIC_DRAW
     );
@@ -135,9 +122,8 @@ export class Square extends Model {
       {
         name: "size",
         type: "number",
-        setAttribute: (value: number) => {
-          this.setSize(value);
-        },
+        setAttribute: this.setSize,
+        getAttribute: this.getSize,
       },
     ];
   }
@@ -152,5 +138,34 @@ export class Square extends Model {
 
   drawMode(gl: WebGL2RenderingContext) {
     return gl.TRIANGLES;
+  }
+
+  setColors(gl: WebGL2RenderingContext): void {
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        ...this.vertices[0].color.toArray(),
+        ...this.vertices[1].color.toArray(),
+        ...this.vertices[2].color.toArray(),
+
+        ...this.vertices[0].color.toArray(),
+        ...this.vertices[2].color.toArray(),
+        ...this.vertices[3].color.toArray(),
+      ]),
+      gl.STATIC_DRAW
+    );
+  }
+
+  isPointInside(point: Point): boolean {
+    const x = point.x;
+    const y = point.y;
+
+    const x1 = this.vertices[0].x;
+    const y1 = this.vertices[0].y;
+
+    const x2 = this.vertices[2].x;
+    const y2 = this.vertices[2].y;
+
+    return x >= x1 && x <= x2 && y >= y1 && y <= y2;
   }
 }

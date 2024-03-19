@@ -22,11 +22,21 @@ export class Line extends Model {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
-        this.vertices[0].x,
-        this.vertices[0].y,
+        ...this.vertices[0].toArray(),
 
-        this.vertices[1].x,
-        this.vertices[1].y,
+        ...this.vertices[1].toArray(),
+      ]),
+      gl.STATIC_DRAW
+    );
+  }
+
+  setColors(gl: WebGL2RenderingContext): void {
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        ...this.vertices[0].color.toArray(),
+
+        ...this.vertices[1].color.toArray(),
       ]),
       gl.STATIC_DRAW
     );
@@ -78,5 +88,28 @@ export class Line extends Model {
 
   count(): number {
     return 2;
+  }
+
+  isPointInside(point: Point): boolean {
+    const tolerance = 5;
+
+    const x = point.x;
+    const y = point.y;
+
+    const x1 = this.vertices[0].x;
+    const y1 = this.vertices[0].y;
+
+    const x2 = this.vertices[1].x;
+    const y2 = this.vertices[1].y;
+
+    // find if point lies on line
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    const d = Math.sqrt(dx * dx + dy * dy);
+
+    const a = Math.abs((x - x1) * dy - (y - y1) * dx) / d;
+
+    return a < tolerance;
   }
 }
