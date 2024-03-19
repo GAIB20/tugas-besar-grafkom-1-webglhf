@@ -1,19 +1,7 @@
 import { Point } from "./point";
-import { Vector } from "./vector";
 
 export class Matrix3 {
-  private matrix: number[][];
-  constructor(
-    public readonly v1: Vector,
-    public readonly v2: Vector,
-    public readonly pivot: Point
-  ) {
-    this.matrix = [
-      v1.toAffineTransform(),
-      v2.toAffineTransform(),
-      pivot.toAffineTransform(),
-    ];
-  }
+  constructor(private matrix: number[][]) {}
 
   multiply(other: Matrix3): Matrix3 {
     const result = new Array(3).fill(0).map(() => new Array(3).fill(0));
@@ -26,11 +14,33 @@ export class Matrix3 {
       }
     }
 
-    return new Matrix3(
-      new Vector(result[0][0], result[0][1]),
-      new Vector(result[1][0], result[1][1]),
-      new Point(result[2][0], result[2][1])
-    );
+    return new Matrix3(result);
+  }
+
+  multiplyPoint(point: Point): Point {
+    const pointArr = point.toAffineTransform();
+    const result = new Array(3).fill(0);
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        result[i] += this.matrix[i][j] * pointArr[j];
+      }
+    }
+
+    return new Point(result[0], result[1]);
+  }
+
+  transpose() {
+    const result = new Array(3).fill(0).map(() => new Array(3).fill(0));
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        result[i][j] = this.matrix[j][i];
+      }
+    }
+
+    this.matrix = result;
+    return this;
   }
 
   flatten(): number[] {
