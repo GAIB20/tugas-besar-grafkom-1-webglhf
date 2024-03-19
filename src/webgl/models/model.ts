@@ -1,16 +1,30 @@
 import { resizeCanvasToDisplaySize } from "../utils";
 import { TransformationMatrix3 } from "../utils/transformation";
 import { Color } from "./primitives/color";
-import { Matrix3 } from "./primitives/matrix";
+import { Point } from "./primitives/point";
+
+export type SpecialAttribute = {
+  name: string;
+  type: string;
+  setAttribute: (value: any) => void;
+};
 
 export abstract class Model {
-  abstract toMatrix3(): Matrix3;
+  abstract getType(): string;
 
-  abstract getCount(): number;
+  abstract getSpecialAttributes(): SpecialAttribute[];
 
   abstract setGeometry(gl: WebGL2RenderingContext): void;
 
-  abstract getType(): string;
+  abstract getVertices(): Point[];
+
+  protected abstract setVerticeByIndex(vertice: Point, index: number): void;
+
+  abstract getCenter(): Point;
+
+  abstract count(): number;
+
+  abstract drawMode(gl: WebGL2RenderingContext): number;
 
   // Draw the scene.
   draw(
@@ -94,10 +108,7 @@ export abstract class Model {
     // Set the matrix.
     gl.uniformMatrix3fv(attributes.matrixLocation, false, matrix);
 
-    // Draw the geometry.
-    var primitiveType = gl.TRIANGLES;
-    var offset = 0;
-    var count = this.getCount();
-    gl.drawArrays(primitiveType, offset, count);
+    // Render the geometry.
+    gl.drawArrays(this.drawMode(gl), 0, this.count());
   }
 }

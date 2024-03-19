@@ -16,7 +16,7 @@ export class Drawer {
   } | null = null;
 
   constructor(
-    private canvas: HTMLCanvasElement,
+    canvas: HTMLCanvasElement,
     vertexShaderSource: string = defaultVertexShaderSource,
     fragmentShaderSource: string = defaultFragmentShaderSource
   ) {
@@ -102,11 +102,17 @@ export class Drawer {
     }
   }
 
+  getObjects() {
+    return this.objects;
+  }
+
   draw() {
     if (!this.gl || !this.program || !this.attributes) {
       console.error("WebGL not supported");
       return;
     }
+
+    console.log("Drawing", this.objects);
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.attributes.positionBuffer);
     this.objects.forEach((object) => {
