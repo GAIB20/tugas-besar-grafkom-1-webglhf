@@ -22,54 +22,33 @@ export class Square extends Model {
       Math.abs(startPoint.y - endPoint.y)
     );
 
+    // p0 -- p1
+    // |      |
+    // p3 -- p2
+
     this.vertices[0].x = startPoint.x;
     this.vertices[0].y = startPoint.y;
-    // start point top right of end point
-    if (startPoint.x >= endPoint.x && startPoint.y >= endPoint.y) {
-      this.vertices[1].x = startPoint.x - this.size;
-      this.vertices[1].y = startPoint.y;
 
-      this.vertices[2].x = startPoint.x - this.size;
-      this.vertices[2].y = startPoint.y - this.size;
+    this.vertices[1].x =
+      startPoint.x >= endPoint.x
+        ? startPoint.x - this.size
+        : startPoint.x + this.size;
+    this.vertices[1].y = startPoint.y;
 
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y - this.size;
-      return;
-    }
-    // start point top left of end point
-    else if (startPoint.x < endPoint.x && startPoint.y > endPoint.y) {
-      this.vertices[1].x = startPoint.x + this.size;
-      this.vertices[1].y = startPoint.y;
+    this.vertices[2].x =
+      startPoint.x >= endPoint.x
+        ? startPoint.x - this.size
+        : startPoint.x + this.size;
+    this.vertices[2].y =
+      startPoint.y >= endPoint.y
+        ? startPoint.y - this.size
+        : startPoint.y + this.size;
 
-      this.vertices[2].x = startPoint.x + this.size;
-      this.vertices[2].y = startPoint.y - this.size;
-
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y - this.size;
-      return;
-    }
-    // start point bottom left of end point
-    else if (startPoint.x < endPoint.x && startPoint.y < endPoint.y) {
-      this.vertices[1].x = startPoint.x + this.size;
-      this.vertices[1].y = startPoint.y;
-
-      this.vertices[2].x = startPoint.x + this.size;
-      this.vertices[2].y = startPoint.y + this.size;
-
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y + this.size;
-      return;
-    } else {
-      // start point bottom right of end point
-      this.vertices[1].x = startPoint.x - this.size;
-      this.vertices[1].y = startPoint.y;
-
-      this.vertices[2].x = startPoint.x - this.size;
-      this.vertices[2].y = startPoint.y + this.size;
-
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y + this.size;
-    }
+    this.vertices[3].x = startPoint.x;
+    this.vertices[3].y =
+      startPoint.y >= endPoint.y
+        ? startPoint.y - this.size
+        : startPoint.y + this.size;
   }
 
   getCenter(): Point {
