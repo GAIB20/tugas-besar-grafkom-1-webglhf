@@ -150,4 +150,39 @@ export abstract class Model {
       vertice.withinTolerance(position, tolerance)
     );
   }
+
+  translate(tx: number, ty: number) {
+    const transformationMatrix = TransformationMatrix3.translation(
+      tx,
+      ty
+    ).transpose();
+    this.getVertices().forEach((vertice, index) => {
+      const newVertice = transformationMatrix.multiplyPoint(vertice);
+      newVertice.color = vertice.color;
+
+      this.setVerticeByIndex(newVertice, index);
+    });
+  }
+
+  rotate(angleInRadians: number) {
+    const center = this.getCenter();
+    const transformationMatrix = TransformationMatrix3.translation(
+      -center.x,
+      -center.y
+    )
+      .multiply(
+        TransformationMatrix3.rotation(angleInRadians).multiply(
+          TransformationMatrix3.translation(center.x, center.y)
+        )
+      )
+      .transpose();
+
+    this.getVertices().forEach((vertice, index) => {
+      const newVertice = transformationMatrix.multiplyPoint(vertice);
+      newVertice.color = vertice.color;
+
+      this.setVerticeByIndex(newVertice, index);
+    });
+  }
+
 }
