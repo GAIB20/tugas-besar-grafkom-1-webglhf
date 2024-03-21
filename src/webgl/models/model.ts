@@ -15,6 +15,8 @@ export abstract class Model {
 
   abstract getType(): string;
 
+  abstract setVertices(object: any, object2: any): void;
+
   abstract getSpecialAttributes(): SpecialAttribute[];
 
   abstract setGeometry(gl: WebGL2RenderingContext): void;
@@ -140,6 +142,10 @@ export abstract class Model {
 
     // Render the geometry.
     gl.drawArrays(this.drawMode(gl), 0, this.count());
+  }
+
+  setColorSolid(color: Color) {
+    this.getVertices().forEach((vertice) => (vertice.color = color));
   }
 
   getVerticeByPosition(

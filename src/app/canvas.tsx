@@ -9,6 +9,7 @@ import { Color } from "@/webgl/models/primitives/color";
 import { Translator } from "@/webgl/tools/translator";
 import { Rotator } from "@/webgl/tools/rotator";
 import { Line } from "@/webgl/models/line";
+import { Rectangle } from "@/webgl/models/rectangle";
 
 export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,6 +19,8 @@ export default function Canvas() {
   const [mode, setMode] = useState<"draw" | "select" | "translate" | "rotate">(
     "draw"
   );
+  const [objectToDraw, setObjectToDraw] = useState<"line" | "rectangle" | "square" | "polygon">("line");
+  
 
   // Tools
   const [translator, setTranslator] = useState<Translator | null>(null);
@@ -46,6 +49,29 @@ export default function Canvas() {
     setDrawer(drawer);
   }
 
+  function getModel(e, rect): Model {
+    if (objectToDraw === "line") {
+      return new Line(
+        new Point(e.clientX - rect.left, e.clientY - rect.top),
+        new Point(e.clientX - rect.left, e.clientY - rect.top)
+      );
+    }
+
+    if (objectToDraw === "rectangle") {
+      return new Rectangle(
+        new Point(e.clientX - rect.left, e.clientY - rect.top),
+        new Point(e.clientX - rect.left, e.clientY - rect.top)
+      );
+    }
+
+    if (objectToDraw === "square") {
+      return new Square(
+        new Point(e.clientX - rect.left, e.clientY - rect.top),
+        new Point(e.clientX - rect.left, e.clientY - rect.top)
+      );
+    }
+  }
+
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     console.log("Mouse down", e.clientX, e.clientY);
     if (canvasRef.current === null || !drawer) {
@@ -63,10 +89,14 @@ export default function Canvas() {
         new Point(e.clientX - rect.left, e.clientY - rect.top)
       );
 
+      const pointSelected = drawer?.getPointByPosition(
+        new Point(e.clientX - rect.left, e.clientY - rect.top)
+      );
+
       const selectedModel = models?.[models.length - 1];
 
       if (selectedModel) {
-        drawer.select(selectedModel);
+        drawer.select(selectedModel, pointSelected);
       } else if (mode === "select") {
         drawer?.unselect();
       }
@@ -89,10 +119,10 @@ export default function Canvas() {
       return;
     }
 
-    const model = new Line(
-      new Point(e.clientX - rect.left, e.clientY - rect.top),
-      new Point(e.clientX - rect.left, e.clientY - rect.top)
-    );
+
+
+    const model = getModel(e, rect);
+
     model.isDrawing = true;
     drawer.addModel(model);
 
@@ -129,7 +159,9 @@ export default function Canvas() {
     if (!startPoint || !currentModel) {
       return;
     }
-    let model = currentModel as Line;
+
+    console.log("ON MOUSE MOVE" + mode)
+    let model = currentModel as Model;
     model.setVertices(
       startPoint,
       new Point(e.clientX - rect!.left, e.clientY - rect!.top)
@@ -197,6 +229,13 @@ export default function Canvas() {
         onMouseUp={handleMouseUp}
       />
       <div className="flex flex-row gap-5">
+        <label htmlFor="objectToDraw">Select Drawing Option:</label>
+        <select id="objectToDraw" value={objectToDraw} onChange={(event) => setObjectToDraw(event.target.value)} className="bg-blue-500 p-2">
+          <option value="line">Line</option>
+          <option value="rectangle">Rectangle</option>
+          <option value="square">Square</option>
+          <option value="polygon">Polygon [WIP]</option>
+        </select>
         <button className="bg-blue-500 p-2" onClick={handleSelect}>
           Select
         </button>

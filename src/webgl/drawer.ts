@@ -25,9 +25,14 @@ export class Drawer {
   } | null = null;
 
   private selectedModel: Model | null = null;
+  private selectedVertice: Point | null = null;
   public selector: SelectorConfig = {
     size: 8,
     color: new Color(0, 0, 0, 1),
+  };
+  public pointSelector: SelectorConfig = {
+    size: 8,
+    color: new Color(1, 1, 1, 1),
   };
 
   constructor(
@@ -168,19 +173,24 @@ export class Drawer {
     }
 
     this.selectedModel.getVertices().forEach((vertice) => {
+      console.log("Drawing selector", vertice, this.selectedVertice);
+      let colorToUse = this.selector.color;
+      if (this.selectedVertice && vertice?.isEqualsTo(this.selectedVertice)) {
+        colorToUse = this.pointSelector.color;
+      }
+      console.log("Drawing selector w/color", vertice, colorToUse)
       const halfSize = this.selector.size / 2;
       const startPoint = new Point(
         vertice.x + halfSize,
-        vertice.y + halfSize,
-        this.selector.color
+        vertice.y + halfSize
       );
       const endPoint = new Point(
         vertice.x - halfSize,
-        vertice.y - halfSize,
-        this.selector.color
+        vertice.y - halfSize
       );
 
       const selector = new Square(startPoint, endPoint);
+      selector.setColorSolid(colorToUse);
 
       selector.draw(
         this.gl as WebGL2RenderingContext,
@@ -194,12 +204,18 @@ export class Drawer {
     return this.models.filter((model) => model.isPointInside(point));
   }
 
-  select(model: Model) {
+  getPointByPosition(point: Point) {
+    const relatedModel = this.getModelsByPosition(point);
+    return relatedModel[0]?.getVerticeByPosition(point);
+  }
+
+  select(model: Model, point: Point | null = null) {
     if (this.selectedModel) {
       this.unselect();
     }
 
     this.selectedModel = model;
+    this.selectedVertice = point;
 
     this.draw();
   }
