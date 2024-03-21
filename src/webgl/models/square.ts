@@ -136,15 +136,14 @@ export class Square extends Model {
   }
 
   isPointInside(point: Point): boolean {
-    const x = point.x;
-    const y = point.y;
-
-    const x1 = this.vertices[0].x;
-    const y1 = this.vertices[0].y;
-
-    const x2 = this.vertices[2].x;
-    const y2 = this.vertices[2].y;
-
-    return x >= x1 && x <= x2 && y >= y1 && y <= y2;
+    this.computeBoundingBox();
+    // due to complexities when dealing with rotated vertices, isPointInside will
+    // simply check if the point is within the bounding box of the square
+      return (
+        point.x >= this.minX &&
+        point.x <= this.maxX &&
+        point.y >= this.minY &&
+        point.y <= this.maxY
+      );
   }
 }

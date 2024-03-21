@@ -12,6 +12,10 @@ export type SpecialAttribute = {
 
 export abstract class Model {
   public isDrawing = false;
+  public minX = 0;
+  public minY = 0;
+  public maxX = 0;
+  public maxY = 0;
 
   abstract getType(): string;
 
@@ -34,6 +38,13 @@ export abstract class Model {
   abstract drawMode(gl: WebGL2RenderingContext): number;
 
   abstract isPointInside(point: Point): boolean;
+
+  computeBoundingBox() {
+    this.minX = Math.min(...this.getVertices().map((vertice) => vertice.x));
+    this.minY = Math.min(...this.getVertices().map((vertice) => vertice.y));
+    this.maxX = Math.max(...this.getVertices().map((vertice) => vertice.x));
+    this.maxY = Math.max(...this.getVertices().map((vertice) => vertice.y));
+  }
 
   // Draw the scene.
   draw(

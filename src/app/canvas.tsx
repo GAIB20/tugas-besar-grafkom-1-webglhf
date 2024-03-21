@@ -15,11 +15,40 @@ export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawer, setDrawer] = useState<Drawer | null>(null);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
-  const [currentModel, setCurrentModel] = useState<Model | null>(null);
+  const [currentDrawingModel, setCurrentDrawingModel] = useState<Model | null>(null);
   const [mode, setMode] = useState<"draw" | "select" | "translate" | "rotate">(
     "draw"
   );
   const [objectToDraw, setObjectToDraw] = useState<"line" | "rectangle" | "square" | "polygon">("line");
+  const [color, setColor] = useState('#000000');
+
+  const handleColorChange = (event: any) => {
+    setColor(event.target.value);
+    const { r, g, b } = hexToRGBA(event.target.value);
+
+    const currentSelectedModel = drawer?.getSelectedModel();
+    const currentSelectedVertice = drawer?.getSelectedVertice();
+
+    if (currentSelectedModel && !currentSelectedVertice) {
+      currentSelectedModel.setColorSolid(new Color(r / 255, g / 255, b / 255, 1));
+      drawer?.draw();
+      return;
+    }
+    if (currentSelectedModel && currentSelectedVertice) {
+      currentSelectedVertice.color = new Color(r / 255, g / 255, b / 255, 1);
+      drawer?.draw();
+      return;
+    }
+  };
+
+  // Function to convert hexadecimal color to RGBA
+  const hexToRGBA = (hex: any) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b};
+  };
+
   
 
   // Tools
@@ -49,6 +78,7 @@ export default function Canvas() {
     setDrawer(drawer);
   }
 
+  // @ts-ignore
   function getModel(e, rect): Model {
     if (objectToDraw === "line") {
       return new Line(
@@ -69,6 +99,16 @@ export default function Canvas() {
         new Point(e.clientX - rect.left, e.clientY - rect.top),
         new Point(e.clientX - rect.left, e.clientY - rect.top)
       );
+    }
+  }
+
+  function handleDelete() {
+    // If there is a selected model, delete it
+    if (drawer?.getSelectedModel()) {
+      const selectedModel = drawer.getSelectedModel() as Model;
+      drawer?.unselect();
+      drawer?.removeModel(selectedModel);
+      drawer.draw();
     }
   }
 
@@ -119,8 +159,6 @@ export default function Canvas() {
       return;
     }
 
-
-
     const model = getModel(e, rect);
 
     model.isDrawing = true;
@@ -130,7 +168,7 @@ export default function Canvas() {
       point.color = colors[index];
     });
 
-    setCurrentModel(model);
+    setCurrentDrawingModel(model);
     setStartPoint(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
   }
 
@@ -156,12 +194,12 @@ export default function Canvas() {
       return;
     }
 
-    if (!startPoint || !currentModel) {
+    if (!startPoint || !currentDrawingModel) {
       return;
     }
 
     console.log("ON MOUSE MOVE" + mode)
-    let model = currentModel as Model;
+    let model = currentDrawingModel as Model;
     model.setVertices(
       startPoint,
       new Point(e.clientX - rect!.left, e.clientY - rect!.top)
@@ -177,8 +215,8 @@ export default function Canvas() {
   function handleMouseUp(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     console.log("Mouse up", e.clientX, e.clientY);
 
-    if (currentModel) {
-      let model = currentModel as Line;
+    if (currentDrawingModel) {
+      let model = currentDrawingModel as Model;
       model.isDrawing = false;
     }
 
@@ -190,7 +228,7 @@ export default function Canvas() {
       rotator.end();
     }
 
-    setCurrentModel(null);
+    setCurrentDrawingModel(null);
     setStartPoint(null);
   }
 
@@ -213,7 +251,7 @@ export default function Canvas() {
 
   function clear() {
     setStartPoint(null);
-    setCurrentModel(null);
+    setCurrentDrawingModel(null);
     setTranslator(null);
     setRotator(null);
   }
@@ -245,6 +283,10 @@ export default function Canvas() {
         <button className="bg-blue-500 p-2" onClick={handleRotate}>
           Rotate
         </button>
+        <button className="bg-blue-500 p-2" onClick={handleDelete}>
+          Delete
+        </button>
+        <input type="color" value={color} onChange={handleColorChange} />
         <button
           className="bg-blue-500 p-2"
           onClick={() => {

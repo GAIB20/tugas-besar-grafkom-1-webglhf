@@ -123,6 +123,7 @@ export class Drawer {
     if (index > -1) {
       this.models.splice(index, 1);
     }
+    this.draw();
   }
 
   getModels() {
@@ -133,13 +134,16 @@ export class Drawer {
     return this.selectedModel;
   }
 
+  getSelectedVertice() {
+    return this.selectedVertice;
+  }
+
   draw() {
     if (!this.gl || !this.program || !this.attributes) {
       console.error("WebGL not supported");
       return;
     }
-
-    console.log("Drawing", this.models);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     this.models.forEach((model) => {
       if (!this.gl || !this.program || !this.attributes) {
