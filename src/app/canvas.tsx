@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Drawer } from "@/webgl/drawer";
 import { Square } from "@/webgl/models/square";
 import { Point } from "@/webgl/models/primitives/point";
@@ -12,16 +12,19 @@ import { Line } from "@/webgl/models/line";
 import { Rectangle } from "@/webgl/models/rectangle";
 import toast from "react-hot-toast";
 
+type Mode = "draw" | "select" | "translate" | "rotate";
+type ModelType = "line" | "rectangle" | "square" | "polygon";
+
 export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawer, setDrawer] = useState<Drawer | null>(null);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
-  const [currentDrawingModel, setCurrentDrawingModel] = useState<Model | null>(null);
-  const [mode, setMode] = useState<"draw" | "select" | "translate" | "rotate">(
-    "draw"
+  const [currentDrawingModel, setCurrentDrawingModel] = useState<Model | null>(
+    null
   );
-  const [objectToDraw, setObjectToDraw] = useState<"line" | "rectangle" | "square" | "polygon">("line");
-  const [color, setColor] = useState('#000000');
+  const [mode, setMode] = useState<Mode>("draw");
+  const [objectToDraw, setObjectToDraw] = useState<ModelType>("line");
+  const [color, setColor] = useState("#000000");
 
   const handleColorChange = (event: any) => {
     setColor(event.target.value);
@@ -31,7 +34,9 @@ export default function Canvas() {
     const currentSelectedVertice = drawer?.getSelectedVertice();
 
     if (currentSelectedModel && !currentSelectedVertice) {
-      currentSelectedModel.setColorSolid(new Color(r / 255, g / 255, b / 255, 1));
+      currentSelectedModel.setColorSolid(
+        new Color(r / 255, g / 255, b / 255, 1)
+      );
       drawer?.draw();
       return;
     }
@@ -49,8 +54,6 @@ export default function Canvas() {
     const b = parseInt(hex.slice(5, 7), 16);
     return { r, g, b };
   };
-
-
 
   // Tools
   const [translator, setTranslator] = useState<Translator | null>(null);
@@ -110,11 +113,11 @@ export default function Canvas() {
       drawer?.unselect();
       drawer?.removeModel(selectedModel);
       drawer.draw();
-      toast.success('Model deleted successfully!');
+      toast.success("Model deleted successfully!");
     }
   }
 
-  function instantiateModel(jsonString) {
+  function instantiateModel(jsonString: string) {
     const parsedJSON = JSON.parse(jsonString);
 
     if (parsedJSON.type === "line") {
@@ -133,45 +136,50 @@ export default function Canvas() {
 
     // Turn modelsJSON into a txt file
     const data = JSON.stringify(modelsJSON);
-    const blob = new Blob([data], { type: 'text/plain' });
+    const blob = new Blob([data], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = 'models.txt';
+    link.download = "models.txt";
     document.body.appendChild(link);
     link.click();
 
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    toast.success('Models downloaded successfully!');
+    toast.success("Models downloaded successfully!");
   }
 
-  function handleLoad(event) {
+  function handleLoad(event: ChangeEvent<HTMLInputElement>) {
     drawer?.clearAllModels();
+    if (!event.target.files) {
+      return;
+    }
+
     const file = event.target.files[0]; // Get the first file from the list of uploaded files
     const reader = new FileReader();
 
     reader.onload = (event) => {
-      const data = event.target.result; // Read the contents of the file
+      const data = event.target?.result; // Read the contents of the file
 
       try {
-        const modelsParsed = JSON.parse(data);
+        const modelsParsed = JSON.parse(data as string);
 
         for (const model of modelsParsed) {
-          drawer?.addModel(instantiateModel(JSON.stringify(model)));
+          const loadedModel = instantiateModel(JSON.stringify(model));
+          if (loadedModel) drawer?.addModel(loadedModel);
         }
 
         console.log(drawer?.getModels());
-        toast.success('Models loaded successfully!');
+        toast.success("Models loaded successfully!");
       } catch (error) {
-        console.error('Error parsing file:', error);
-        toast.error('Error loading models');
+        console.error("Error parsing file:", error);
+        toast.error("Error loading models");
       }
     };
 
     reader.readAsText(file); // Read file as text
-  };
+  }
 
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     console.log("Mouse down", e.clientX, e.clientY);
@@ -259,7 +267,7 @@ export default function Canvas() {
       return;
     }
 
-    console.log("ON MOUSE MOVE" + mode)
+    console.log("ON MOUSE MOVE" + mode);
     let model = currentDrawingModel as Model;
     model.setVertices(
       startPoint,
@@ -329,7 +337,12 @@ export default function Canvas() {
       />
       <div className="flex flex-row gap-5">
         <label htmlFor="objectToDraw">Select Drawing Option:</label>
-        <select id="objectToDraw" value={objectToDraw} onChange={(event) => setObjectToDraw(event.target.value)} className="bg-blue-500 p-2">
+        <select
+          id="objectToDraw"
+          value={objectToDraw}
+          onChange={(event) => setObjectToDraw(event.target.value as ModelType)}
+          className="bg-blue-500 p-2"
+        >
           <option value="line">Line</option>
           <option value="rectangle">Rectangle</option>
           <option value="square">Square</option>
@@ -347,7 +360,13 @@ export default function Canvas() {
         <button className="bg-blue-500 p-2" onClick={handleDelete}>
           Delete
         </button>
-        <button className="bg-blue-500 p-2" onClick={() => { drawer?.clearAllModels(); toast.success("Canvas cleared!") }}>
+        <button
+          className="bg-blue-500 p-2"
+          onClick={() => {
+            drawer?.clearAllModels();
+            toast.success("Canvas cleared!");
+          }}
+        >
           Reset Canvas
         </button>
         <button className="bg-blue-500 p-2" onClick={handleSave}>
