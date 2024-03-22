@@ -1,5 +1,6 @@
 import { TransformationMatrix3 } from "../utils/transformation";
 import { Model } from "./model";
+import { Color } from "./primitives/color";
 import { Point } from "./primitives/point";
 
 export class Square extends Model {
@@ -170,4 +171,16 @@ export class Square extends Model {
       rotatedPoint.y <= nonRotatedSquare.maxY + tolerance
     );
   }
+
+  // static constructor from JSON
+  static fromJSON(json: any): Square {
+    const square = new Square(new Point(0, 0), new Point(0, 0));
+    square.vertices[0] = new Point(json.vertices[0].x, json.vertices[0].y, new Color(json.vertices[0].color.r, json.vertices[0].color.g, json.vertices[0].color.b, json.vertices[0].color.a));
+    square.vertices[1] = new Point(json.vertices[1].x, json.vertices[1].y, new Color(json.vertices[1].color.r, json.vertices[1].color.g, json.vertices[1].color.b, json.vertices[1].color.a));
+    square.vertices[2] = new Point(json.vertices[2].x, json.vertices[2].y, new Color(json.vertices[2].color.r, json.vertices[2].color.g, json.vertices[2].color.b, json.vertices[2].color.a));
+    square.vertices[3] = new Point(json.vertices[3].x, json.vertices[3].y, new Color(json.vertices[3].color.r, json.vertices[3].color.g, json.vertices[3].color.b, json.vertices[3].color.a));
+    square.size = json.size;
+    return square;
+  }
+
 }

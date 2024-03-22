@@ -13,7 +13,7 @@ interface SelectorConfig {
 }
 
 export class Drawer {
-  private readonly models: Model[] = [];
+  private models: Model[] = [];
   private gl: WebGL2RenderingContext | null = null;
   private program: WebGLProgram | null | undefined = null;
   private attributes: {
@@ -123,6 +123,13 @@ export class Drawer {
     if (index > -1) {
       this.models.splice(index, 1);
     }
+    this.draw();
+  }
+
+  clearAllModels() {
+    this.models = [];
+    this.selectedModel = null;
+    this.selectedVertice = null;
     this.draw();
   }
 
