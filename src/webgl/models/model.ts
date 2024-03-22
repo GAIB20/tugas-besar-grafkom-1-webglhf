@@ -63,11 +63,11 @@ export abstract class Model {
       angleInRadians: number;
       scale: number[];
     } = {
-      color: new Color(0, 0, 0, 1),
-      translation: [0, 0],
-      angleInRadians: 0,
-      scale: [1, 1],
-    }
+        color: new Color(0, 0, 0, 1),
+        translation: [0, 0],
+        angleInRadians: 0,
+        scale: [1, 1],
+      }
   ) {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
 
@@ -202,4 +202,9 @@ export abstract class Model {
     });
   }
 
+  serialize() {
+    const json = JSON.parse(JSON.stringify(this));
+    json["type"] = this.getType();
+    return json;
+  }
 }

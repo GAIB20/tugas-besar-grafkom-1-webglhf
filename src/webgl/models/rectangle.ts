@@ -1,4 +1,5 @@
 import { Model } from "./model";
+import { Color } from "./primitives/color";
 import { Point } from "./primitives/point";
 
 export class Rectangle extends Model {
@@ -15,6 +16,18 @@ export class Rectangle extends Model {
   constructor(startPoint: Point, endPoint: Point) {
     super();
     this.computeVertices(startPoint, endPoint);
+  }
+
+  // static constructor from JSON
+  static fromJSON(json: any): Rectangle {
+    const rectangle = new Rectangle(new Point(0, 0), new Point(0, 0));
+    rectangle.vertices[0] = new Point(json.vertices[0].x, json.vertices[0].y, new Color(json.vertices[0].color.r, json.vertices[0].color.g, json.vertices[0].color.b, json.vertices[0].color.a));
+    rectangle.vertices[1] = new Point(json.vertices[1].x, json.vertices[1].y, new Color(json.vertices[1].color.r, json.vertices[1].color.g, json.vertices[1].color.b, json.vertices[1].color.a));
+    rectangle.vertices[2] = new Point(json.vertices[2].x, json.vertices[2].y, new Color(json.vertices[2].color.r, json.vertices[2].color.g, json.vertices[2].color.b, json.vertices[2].color.a));
+    rectangle.vertices[3] = new Point(json.vertices[3].x, json.vertices[3].y, new Color(json.vertices[3].color.r, json.vertices[3].color.g, json.vertices[3].color.b, json.vertices[3].color.a));
+    rectangle.width = json.width;
+    rectangle.height = json.height;
+    return rectangle;
   }
 
   private computeVertices(startPoint: Point, endPoint: Point) {

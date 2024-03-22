@@ -1,4 +1,5 @@
 import { Model, SpecialAttribute } from "./model";
+import { Color } from "./primitives/color";
 import { Point } from "./primitives/point";
 
 export class Line extends Model {
@@ -112,4 +113,16 @@ export class Line extends Model {
 
     return a < tolerance;
   }
+
+  static fromJSON(json: any): Line {
+    const line = new Line(new Point(json.vertices[0].x, json.vertices[0].y, new Color(json.vertices[0].color.r, json.vertices[0].color.g, json.vertices[0].color.b, json.vertices[0].color.a)),
+      new Point(json.vertices[1].x, json.vertices[1].y, new Color(json.vertices[1].color.r, json.vertices[1].color.g, json.vertices[1].color.b, json.vertices[1].color.a)));
+
+    line.width = json.width;
+    return line;
+  }
+
+
 }
+
+

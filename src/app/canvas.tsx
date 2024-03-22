@@ -10,6 +10,7 @@ import { Translator } from "@/webgl/tools/translator";
 import { Rotator } from "@/webgl/tools/rotator";
 import { Line } from "@/webgl/models/line";
 import { Rectangle } from "@/webgl/models/rectangle";
+import toast from "react-hot-toast";
 
 export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,10 +47,10 @@ export default function Canvas() {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    return { r, g, b};
+    return { r, g, b };
   };
 
-  
+
 
   // Tools
   const [translator, setTranslator] = useState<Translator | null>(null);
@@ -109,8 +110,68 @@ export default function Canvas() {
       drawer?.unselect();
       drawer?.removeModel(selectedModel);
       drawer.draw();
+      toast.success('Model deleted successfully!');
     }
   }
+
+  function instantiateModel(jsonString) {
+    const parsedJSON = JSON.parse(jsonString);
+
+    if (parsedJSON.type === "line") {
+      return Line.fromJSON(parsedJSON);
+    } else if (parsedJSON.type === "rectangle") {
+      return Rectangle.fromJSON(parsedJSON);
+    } else if (parsedJSON.type === "square") {
+      return Square.fromJSON(parsedJSON);
+    }
+  }
+
+  function handleSave() {
+    // Get all Models
+    const models = drawer?.getModels();
+    const modelsJSON = models?.map((model) => model.serialize());
+
+    // Turn modelsJSON into a txt file
+    const data = JSON.stringify(modelsJSON);
+    const blob = new Blob([data], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'models.txt';
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success('Models downloaded successfully!');
+  }
+
+  function handleLoad(event) {
+    drawer?.clearAllModels();
+    const file = event.target.files[0]; // Get the first file from the list of uploaded files
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const data = event.target.result; // Read the contents of the file
+
+      try {
+        const modelsParsed = JSON.parse(data);
+
+        for (const model of modelsParsed) {
+          drawer?.addModel(instantiateModel(JSON.stringify(model)));
+        }
+
+        console.log(drawer?.getModels());
+        toast.success('Models loaded successfully!');
+      } catch (error) {
+        console.error('Error parsing file:', error);
+        toast.error('Error loading models');
+      }
+    };
+
+    reader.readAsText(file); // Read file as text
+  };
 
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     console.log("Mouse down", e.clientX, e.clientY);
@@ -286,6 +347,16 @@ export default function Canvas() {
         <button className="bg-blue-500 p-2" onClick={handleDelete}>
           Delete
         </button>
+        <button className="bg-blue-500 p-2" onClick={() => { drawer?.clearAllModels(); toast.success("Canvas cleared!") }}>
+          Reset Canvas
+        </button>
+        <button className="bg-blue-500 p-2" onClick={handleSave}>
+          Save
+        </button>
+        <div>
+          <h1>Load Models</h1>
+          <input type="file" accept=".txt" onChange={handleLoad} />
+        </div>
         <input type="color" value={color} onChange={handleColorChange} />
         <button
           className="bg-blue-500 p-2"
