@@ -17,6 +17,10 @@ export abstract class Model {
   public maxX = 0;
   public maxY = 0;
 
+  protected rotateAngleInRadians = 0;
+
+  protected readonly center: Point = new Point(0, 0);
+
   abstract getType(): string;
 
   abstract setVertices(object: any, object2: any): void;
@@ -31,13 +35,19 @@ export abstract class Model {
 
   protected abstract setVerticeByIndex(vertice: Point, index: number): void;
 
-  abstract getCenter(): Point;
-
   abstract count(): number;
 
   abstract drawMode(gl: WebGL2RenderingContext): number;
 
-  abstract isPointInside(point: Point): boolean;
+  abstract isPointInside(point: Point, tolerance: number): boolean;
+
+  protected abstract computeCenter(): void;
+
+  abstract clone(): Model;
+
+  getCenter(): Point {
+    return this.center;
+  }
 
   computeBoundingBox() {
     this.minX = Math.min(...this.getVertices().map((vertice) => vertice.x));
@@ -161,11 +171,15 @@ export abstract class Model {
 
   getVerticeByPosition(
     position: Point,
-    tolerance: number = 50
+    tolerance: number = 20
   ): Point | undefined {
     return this.getVertices().find((vertice) =>
       vertice.withinTolerance(position, tolerance)
     );
+  }
+
+  getRotationAngleInRadians() {
+    return this.rotateAngleInRadians;
   }
 
   translate(tx: number, ty: number) {
@@ -179,20 +193,17 @@ export abstract class Model {
 
       this.setVerticeByIndex(newVertice, index);
     });
+
+    this.computeCenter();
   }
 
   rotate(angleInRadians: number) {
+    this.rotateAngleInRadians += angleInRadians;
     const center = this.getCenter();
-    const transformationMatrix = TransformationMatrix3.translation(
-      -center.x,
-      -center.y
-    )
-      .multiply(
-        TransformationMatrix3.rotation(angleInRadians).multiply(
-          TransformationMatrix3.translation(center.x, center.y)
-        )
-      )
-      .transpose();
+    const transformationMatrix = TransformationMatrix3.rotationPreserveCenter(
+      angleInRadians,
+      center
+    ).transpose();
 
     this.getVertices().forEach((vertice, index) => {
       const newVertice = transformationMatrix.multiplyPoint(vertice);
@@ -201,5 +212,4 @@ export abstract class Model {
       this.setVerticeByIndex(newVertice, index);
     });
   }
-
 }

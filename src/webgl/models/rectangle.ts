@@ -1,3 +1,4 @@
+import { TransformationMatrix3 } from "../utils/transformation";
 import { Model } from "./model";
 import { Point } from "./primitives/point";
 
@@ -24,59 +25,47 @@ export class Rectangle extends Model {
     this.vertices[0].x = startPoint.x;
     this.vertices[0].y = startPoint.y;
 
-    // start point top right of end point
-    if (startPoint.x >= endPoint.x && startPoint.y >= endPoint.y) {
-      this.vertices[1].x = startPoint.x - this.width;
-      this.vertices[1].y = startPoint.y;
+    this.vertices[1].x =
+      startPoint.x >= endPoint.x
+        ? startPoint.x - this.width
+        : startPoint.x + this.width;
+    this.vertices[1].y = startPoint.y;
 
-      this.vertices[2].x = startPoint.x - this.width;
-      this.vertices[2].y = startPoint.y - this.height;
+    this.vertices[2].x =
+      startPoint.x >= endPoint.x
+        ? startPoint.x - this.width
+        : startPoint.x + this.width;
+    this.vertices[2].y =
+      startPoint.y >= endPoint.y
+        ? startPoint.y - this.height
+        : startPoint.y + this.height;
 
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y - this.height;
-      return;
-    }
-    // start point top left of end point
-    else if (startPoint.x < endPoint.x && startPoint.y > endPoint.y) {
-      this.vertices[1].x = startPoint.x + this.width;
-      this.vertices[1].y = startPoint.y;
+    this.vertices[3].x = startPoint.x;
+    this.vertices[3].y =
+      startPoint.y >= endPoint.y
+        ? startPoint.y - this.height
+        : startPoint.y + this.height;
 
-      this.vertices[2].x = startPoint.x + this.width;
-      this.vertices[2].y = startPoint.y - this.height;
-
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y - this.height;
-      return;
-    }
-    // start point bottom left of end point
-    else if (startPoint.x < endPoint.x && startPoint.y < endPoint.y) {
-      this.vertices[1].x = startPoint.x + this.width;
-      this.vertices[1].y = startPoint.y;
-
-      this.vertices[2].x = startPoint.x + this.width;
-      this.vertices[2].y = startPoint.y + this.height;
-
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y + this.height;
-      return;
-    } else {
-      // start point bottom right of end point
-      this.vertices[1].x = startPoint.x - this.width;
-      this.vertices[1].y = startPoint.y;
-
-      this.vertices[2].x = startPoint.x - this.width;
-      this.vertices[2].y = startPoint.y + this.height;
-
-      this.vertices[3].x = startPoint.x;
-      this.vertices[3].y = startPoint.y + this.height;
-    }
+    this.computeCenter();
   }
 
-  getCenter(): Point {
-    const x = (this.vertices[0].x + this.vertices[2].x) / 2;
-    const y = (this.vertices[0].y + this.vertices[2].y) / 2;
+  protected computeCenter(): void {
+    this.center.x = (this.vertices[0].x + this.vertices[2].x) / 2;
+    this.center.y = (this.vertices[0].y + this.vertices[2].y) / 2;
+  }
 
-    return new Point(x, y);
+  clone(): Model {
+    const rect = new Rectangle(new Point(0, 0), new Point(0, 0));
+    this.getVertices().forEach((vertice, index) => {
+      rect.setVerticeByIndex(vertice.clone(), index);
+    });
+
+    rect.rotateAngleInRadians = this.rotateAngleInRadians;
+    rect.computeCenter();
+    rect.width = this.width;
+    rect.height = this.height;
+
+    return rect;
   }
 
   setVertices(startPoint: Point, endPoint: Point) {
@@ -174,15 +163,25 @@ export class Rectangle extends Model {
     );
   }
 
-  isPointInside(point: Point): boolean {
-    this.computeBoundingBox();
-    // due to complexities when dealing with rotated vertices, isPointInside will
-    // simply check if the point is within the bounding box of the square
+  isPointInside(point: Point, tolerance: number): boolean {
+    const nonRotatedRect = this.clone();
+    nonRotatedRect.rotate(-this.rotateAngleInRadians);
+
+    const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
+      -this.rotateAngleInRadians,
+      this.getCenter()
+    )
+      .transpose()
+      .multiplyPoint(point);
+
+    // Check if the point is inside non rotated square
+    nonRotatedRect.computeBoundingBox();
+
     return (
-      point.x >= this.minX &&
-      point.x <= this.maxX &&
-      point.y >= this.minY &&
-      point.y <= this.maxY
+      rotatedPoint.x >= nonRotatedRect.minX - tolerance &&
+      rotatedPoint.x <= nonRotatedRect.maxX + tolerance &&
+      rotatedPoint.y >= nonRotatedRect.minY - tolerance &&
+      rotatedPoint.y <= nonRotatedRect.maxY + tolerance
     );
   }
 }

@@ -29,4 +29,8 @@ export class Color {
   public toArray(): number[] {
     return [this.r, this.g, this.b, this.a];
   }
+
+  public clone(): Color {
+    return new Color(this.r, this.g, this.b, this.a);
+  }
 }

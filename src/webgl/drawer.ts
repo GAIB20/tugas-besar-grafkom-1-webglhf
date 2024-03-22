@@ -32,7 +32,7 @@ export class Drawer {
   };
   public pointSelector: SelectorConfig = {
     size: 8,
-    color: new Color(1, 1, 1, 1),
+    color: new Color(215, 0, 64, 1),
   };
 
   constructor(
@@ -182,16 +182,10 @@ export class Drawer {
       if (this.selectedVertice && vertice?.isEqualsTo(this.selectedVertice)) {
         colorToUse = this.pointSelector.color;
       }
-      console.log("Drawing selector w/color", vertice, colorToUse)
+      console.log("Drawing selector w/color", vertice, colorToUse);
       const halfSize = this.selector.size / 2;
-      const startPoint = new Point(
-        vertice.x + halfSize,
-        vertice.y + halfSize
-      );
-      const endPoint = new Point(
-        vertice.x - halfSize,
-        vertice.y - halfSize
-      );
+      const startPoint = new Point(vertice.x + halfSize, vertice.y + halfSize);
+      const endPoint = new Point(vertice.x - halfSize, vertice.y - halfSize);
 
       const selector = new Square(startPoint, endPoint);
       selector.setColorSolid(colorToUse);
@@ -204,8 +198,8 @@ export class Drawer {
     });
   }
 
-  getModelsByPosition(point: Point) {
-    return this.models.filter((model) => model.isPointInside(point));
+  getModelsByPosition(point: Point, tolerance: number = 8) {
+    return this.models.filter((model) => model.isPointInside(point, tolerance));
   }
 
   getPointByPosition(point: Point) {

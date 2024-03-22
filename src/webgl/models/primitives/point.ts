@@ -45,4 +45,8 @@ export class Point {
 
     return new Point(result[0], result[1]);
   }
+
+  clone(): Point {
+    return new Point(this.x, this.y, this.color.clone());
+  }
 }

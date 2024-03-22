@@ -1,3 +1,4 @@
+import { TransformationMatrix3 } from "../utils/transformation";
 import { Model } from "./model";
 import { Point } from "./primitives/point";
 
@@ -49,13 +50,13 @@ export class Square extends Model {
       startPoint.y >= endPoint.y
         ? startPoint.y - this.size
         : startPoint.y + this.size;
+
+    this.computeCenter();
   }
 
-  getCenter(): Point {
-    const x = (this.vertices[0].x + this.vertices[2].x) / 2;
-    const y = (this.vertices[0].y + this.vertices[2].y) / 2;
-
-    return new Point(x, y);
+  protected computeCenter() {
+    this.center.x = (this.vertices[0].x + this.vertices[2].x) / 2;
+    this.center.y = (this.vertices[0].y + this.vertices[2].y) / 2;
   }
 
   setVertices(startPoint: Point, endPoint: Point) {
@@ -135,15 +136,38 @@ export class Square extends Model {
     );
   }
 
-  isPointInside(point: Point): boolean {
-    this.computeBoundingBox();
-    // due to complexities when dealing with rotated vertices, isPointInside will
-    // simply check if the point is within the bounding box of the square
-      return (
-        point.x >= this.minX &&
-        point.x <= this.maxX &&
-        point.y >= this.minY &&
-        point.y <= this.maxY
-      );
+  clone(): Model {
+    const square = new Square(new Point(0, 0), new Point(0, 0));
+    this.getVertices().forEach((vertice, index) => {
+      square.setVerticeByIndex(vertice.clone(), index);
+    });
+
+    square.rotateAngleInRadians = this.rotateAngleInRadians;
+    square.computeCenter();
+    square.size = this.size;
+
+    return square;
+  }
+
+  isPointInside(point: Point, tolerance: number): boolean {
+    const nonRotatedSquare = this.clone();
+    nonRotatedSquare.rotate(-this.rotateAngleInRadians);
+
+    const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
+      -this.rotateAngleInRadians,
+      this.getCenter()
+    )
+      .transpose()
+      .multiplyPoint(point);
+
+    // Check if the point is inside non rotated square
+    nonRotatedSquare.computeBoundingBox();
+
+    return (
+      rotatedPoint.x >= nonRotatedSquare.minX - tolerance &&
+      rotatedPoint.x <= nonRotatedSquare.maxX + tolerance &&
+      rotatedPoint.y >= nonRotatedSquare.minY - tolerance &&
+      rotatedPoint.y <= nonRotatedSquare.maxY + tolerance
+    );
   }
 }

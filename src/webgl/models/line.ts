@@ -12,10 +12,7 @@ export class Line extends Model {
   constructor(startPoint: Point, endPoint: Point) {
     super();
 
-    this.vertices[0] = startPoint;
-    this.vertices[1] = endPoint;
-
-    this.computeWidth();
+    this.setVertices(startPoint, endPoint);
   }
 
   setGeometry(gl: WebGL2RenderingContext): void {
@@ -70,16 +67,12 @@ export class Line extends Model {
     this.vertices[index] = vertice;
   }
 
-  getCenter(): Point {
-    return new Point(
-      (this.vertices[0].x + this.vertices[1].x) / 2,
-      (this.vertices[0].y + this.vertices[1].y) / 2
-    );
-  }
-
   setVertices(startPoint: Point, endPoint: Point): void {
     this.vertices[0] = startPoint;
     this.vertices[1] = endPoint;
+
+    this.computeWidth();
+    this.computeCenter();
   }
 
   drawMode(gl: WebGL2RenderingContext): number {
@@ -90,9 +83,7 @@ export class Line extends Model {
     return 2;
   }
 
-  isPointInside(point: Point): boolean {
-    const tolerance = 5;
-
+  isPointInside(point: Point, tolerance: number): boolean {
     const x = point.x;
     const y = point.y;
 
@@ -111,5 +102,14 @@ export class Line extends Model {
     const a = Math.abs((x - x1) * dy - (y - y1) * dx) / d;
 
     return a < tolerance;
+  }
+
+  protected computeCenter(): void {
+    this.center.x = (this.vertices[0].x + this.vertices[1].x) / 2;
+    this.center.y = (this.vertices[0].y + this.vertices[1].y) / 2;
+  }
+
+  clone(): Model {
+    return new Line(this.vertices[0].clone(), this.vertices[1].clone());
   }
 }

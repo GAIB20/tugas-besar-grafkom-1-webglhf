@@ -1,4 +1,5 @@
 import { Matrix3 } from "../models/primitives/matrix";
+import { Point } from "../models/primitives/point";
 
 export class TransformationMatrix3 {
   static projection(width: number, height: number): Matrix3 {
@@ -41,5 +42,16 @@ export class TransformationMatrix3 {
       [0, sy, 0],
       [0, 0, 1],
     ]);
+  }
+
+  static rotationPreserveCenter(
+    angleInRadians: number,
+    center: Point
+  ): Matrix3 {
+    return TransformationMatrix3.translation(-center.x, -center.y).multiply(
+      TransformationMatrix3.rotation(angleInRadians).multiply(
+        TransformationMatrix3.translation(center.x, center.y)
+      )
+    );
   }
 }
