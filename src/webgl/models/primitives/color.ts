@@ -33,4 +33,8 @@ export class Color {
   public clone(): Color {
     return new Color(this.r, this.g, this.b, this.a);
   }
+
+  static fromJSON(json: { r: number; g: number; b: number; a: number }) {
+    return new Color(json.r, json.g, json.b, json.a);
+  }
 }

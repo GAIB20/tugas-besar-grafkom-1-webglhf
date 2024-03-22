@@ -49,4 +49,12 @@ export class Point {
   clone(): Point {
     return new Point(this.x, this.y, this.color.clone());
   }
+
+  static fromJSON(json: {
+    x: number;
+    y: number;
+    color: { r: number; g: number; b: number; a: number };
+  }): Point {
+    return new Point(json.x, json.y, Color.fromJSON(json.color));
+  }
 }
