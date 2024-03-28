@@ -73,7 +73,31 @@ export class Square extends Model {
   }
 
   setSize(size: number) {
-    throw new Error("Not implemented");
+    // Calculate the original distance between the first and fourth points (opposite points of the square)
+    const originalDistance = this.vertices[3].euclideanDistanceTo(this.vertices[0]);
+
+    // Calculate the scaling factor based on the original distance and the new size
+    const scaleFactor = size / originalDistance;
+
+    // Calculate the new coordinates for the fourth point
+    const newX = this.vertices[0].x + (this.vertices[3].x - this.vertices[0].x) * scaleFactor;
+    const newY = this.vertices[0].y + (this.vertices[3].y - this.vertices[0].y) * scaleFactor;
+
+    // Update the coordinates of the fourth point
+    this.vertices[3].x = newX;
+    this.vertices[3].y = newY;
+
+    // Adjust the other points to maintain square shape
+    const diffX = this.vertices[3].x - this.vertices[0].x;
+    const diffY = this.vertices[3].y - this.vertices[0].y;
+
+    this.vertices[1].x = this.vertices[0].x + diffY;
+    this.vertices[1].y = this.vertices[0].y - diffX;
+
+    this.vertices[2].x = this.vertices[1].x + diffX;
+    this.vertices[2].y = this.vertices[1].y + diffY;
+
+    this.computeDimensions(); 
   }
 
   setGeometry(gl: WebGL2RenderingContext) {
@@ -211,7 +235,7 @@ export class Square extends Model {
       .transpose()
       .multiplyPoint(newPosition);
     newPosition = rotatedPoint;
-    
+
     newPosition.color = this.vertices[verticeIdx].color;
 
     let opposingDiag = (verticeIdx + 2) % 4;

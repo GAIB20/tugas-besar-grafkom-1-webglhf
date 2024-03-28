@@ -57,7 +57,24 @@ export class Line extends Model {
   }
 
   setWidth(width: number): void {
-    throw new Error("Method not implemented.");
+    if (width < 10) {
+      return;
+    }
+    console.log("CHANGING WIDTH");
+    // Calculate the original length between the points
+    const originalLength = this.vertices[1].euclideanDistanceTo(this.vertices[0]);
+
+    // Calculate the scaling factor to maintain the original length
+    const scaleFactor = width / originalLength;
+
+    // Calculate new coordinates for the second point
+    const newX = this.vertices[0].x + (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
+    const newY = this.vertices[0].y + (this.vertices[1].y - this.vertices[0].y) * scaleFactor;
+
+    // Update the second point with new coordinates
+    this.vertices[1].x = newX;
+    this.vertices[1].y = newY;
+    this.width = this.vertices[1].euclideanDistanceTo(this.vertices[0]);
   }
 
   getVertices(): Point[] {

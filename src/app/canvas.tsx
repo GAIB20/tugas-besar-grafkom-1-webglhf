@@ -28,6 +28,11 @@ export default function Canvas() {
   const [objectToDraw, setObjectToDraw] = useState<ModelType>("line");
   const [color, setColor] = useState("#000000");
 
+  const [height, setHeight] = useState(0);
+  const [width, setWidth] = useState(0);
+
+  const [selectedModelType, setSelectedModelType] = useState<ModelType | null>(null);
+
   const handleColorChange = (event: any) => {
     setColor(event.target.value);
     const { r, g, b } = hexToRGBA(event.target.value);
@@ -61,7 +66,7 @@ export default function Canvas() {
   const [translator, setTranslator] = useState<Translator | null>(null);
   const [rotator, setRotator] = useState<Rotator | null>(null);
   const [scaler, setScaler] = useState<Scaler | null>(null);
-  const [pointMover, setPointMover] = useState<PointMover| null>(null);
+  const [pointMover, setPointMover] = useState<PointMover | null>(null);
 
   const colors = [
     new Color(Math.random(), Math.random(), Math.random(), 1),
@@ -115,6 +120,7 @@ export default function Canvas() {
     if (drawer?.getSelectedModel()) {
       const selectedModel = drawer.getSelectedModel() as Model;
       drawer?.unselect();
+      setSelectedModelType(null);
       drawer?.removeModel(selectedModel);
       drawer.draw();
       toast.success("Model deleted successfully!");
@@ -185,6 +191,25 @@ export default function Canvas() {
     reader.readAsText(file); // Read file as text
   }
 
+  function computeDimension() {
+    const selectedModel = drawer?.getSelectedModel();
+
+    if (selectedModel?.getType() === "line") {
+      const line = selectedModel as Line;
+      setWidth(line.getWidth());
+    }
+    if (selectedModel?.getType() === "square") {
+      const square = selectedModel as Square;
+      setWidth(square.getSize());
+    }
+
+    if (selectedModel?.getType() === "rectangle") {
+      const rectangle = selectedModel as Rectangle;
+      setHeight(rectangle.getHeight());
+      setWidth(rectangle.getWidth());
+    }
+  }
+
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     console.log("Mouse down", e.clientX, e.clientY);
     if (canvasRef.current === null || !drawer) {
@@ -210,8 +235,11 @@ export default function Canvas() {
 
       if (selectedModel) {
         drawer.select(selectedModel, pointSelected);
+        computeDimension();
+        setSelectedModelType(selectedModel.getType() as ModelType);
       } else if (mode === "select") {
         drawer?.unselect();
+        setSelectedModelType(null);
       }
       return;
     }
@@ -310,6 +338,7 @@ export default function Canvas() {
     });
 
     drawer.draw();
+    computeDimension();
   }
 
   function handleMouseUp(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
@@ -335,10 +364,42 @@ export default function Canvas() {
 
     if (mode === "pointMover" && pointMover) {
       pointMover.end();
+      computeDimension();
     }
 
     setCurrentDrawingModel(null);
     setStartPoint(null);
+  }
+
+  function notifyChange(width, height) {
+    if (!drawer) {
+      return;
+    }
+
+    if (width < 1 || height < 1) {
+      toast.error("Width and Height must be greater than 10");
+      return;
+    }
+    console.log("NOTIFYING CHANGE" + width + " " + height)
+
+    const selectedModel = drawer.getSelectedModel();
+    if (selectedModel?.getType() === "line") {
+      const line = selectedModel as Line;
+      selectedModel.setWidth(width);
+    }
+
+    if (selectedModel?.getType() === "square") {
+      const square = selectedModel as Square;
+      square.setSize(width);
+    }
+
+    if (selectedModel?.getType() === "rectangle") {
+      const rectangle = selectedModel as Rectangle;
+      rectangle.setWidth(width);
+      rectangle.setHeight(height);
+    }
+
+    drawer.draw();
   }
 
   function handleSelect() {
@@ -438,6 +499,47 @@ export default function Canvas() {
           <h1>Load Models</h1>
           <input type="file" accept=".txt" onChange={handleLoad} />
         </div>
+        {(selectedModelType === "line" || selectedModelType === "square") && (
+          <div>
+            Width:
+            <input
+              type="number"
+              value={width}
+              onChange={(e) => {
+                setWidth(parseInt(e.target.value));
+                notifyChange(e.target.value);
+              }}
+              style={{ color: 'black' }}
+            />
+          </div>
+        )}
+        {selectedModelType === "rectangle" && (
+          <div>
+            Height:
+            <input
+              type="number"
+              value={height}
+              onChange={(e) => {
+                setHeight(parseInt(e.target.value))
+                notifyChange(width, e.target.value);
+              }
+              }
+              style={{ color: 'black' }}
+            />
+            <br />
+            Width:
+            <input
+              type="number"
+              value={width}
+              onChange={(e) => {
+                setWidth(parseInt(e.target.value))
+                notifyChange(e.target.value, height);
+              }
+              }
+              style={{ color: 'black' }}
+            />
+          </div>
+        )}
         <input type="color" value={color} onChange={handleColorChange} />
         <button
           className="bg-blue-500 p-2"

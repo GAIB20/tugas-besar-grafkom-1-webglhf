@@ -106,17 +106,51 @@ export class Rectangle extends Model {
     return this.width;
   }
 
-  setWidth(size: number) {
-    throw new Error("Not implemented");
-  }
-
   getHeight(): number {
     return this.height;
   }
 
-  setHeight(size: number) {
-    throw new Error("Not implemented");
+  setWidth(width: number): void {
+    // Calculate the original width of the rectangle
+    const originalWidth = this.vertices[1].x - this.vertices[0].x;
+
+    // Calculate the scaling factor based on the original width and the new width
+    const scaleFactor = width / originalWidth;
+
+    // Calculate the new coordinates for the second and third points
+    const newX = this.vertices[0].x + (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
+
+    // Update the coordinates of the second point
+    this.vertices[1].x = newX;
+    this.vertices[2].x = newX;
+    this.computeDimensions();
   }
+
+  setHeight(height: number): void {
+    // Calculate the original height of the rectangle
+    const originalHeight = this.vertices[2].y - this.vertices[0].y;
+
+    // Calculate the scaling factor based on the original height and the new height
+    const scaleFactor = height / originalHeight;
+
+    // Calculate the new coordinates for the third and fourth points
+    const newY = this.vertices[0].y + (this.vertices[2].y - this.vertices[0].y) * scaleFactor;
+
+    // Update the coordinates of the third point
+    this.vertices[2].y = newY;
+    this.vertices[3].y = newY;
+    this.computeDimensions();
+  }
+
+
+  // setWidth(size: number) {
+  //   throw new Error("Not implemented");
+  // }
+
+
+  // setHeight(size: number) {
+  //   throw new Error("Not implemented");
+  // }
 
   setGeometry(gl: WebGL2RenderingContext) {
     gl.bufferData(
@@ -224,6 +258,7 @@ export class Rectangle extends Model {
     newPosition = rotatedPoint;
 
     newPosition.color = this.vertices[verticeIdx].color;
+
 
     // Preserve diagonal aspect ratio
     let opposingDiag = (verticeIdx + 2) % 4;
