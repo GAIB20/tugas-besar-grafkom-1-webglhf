@@ -25,7 +25,7 @@ export class Point {
     return this.x === other.x && this.y === other.y;
   }
 
-  withinTolerance(other: Point, tolerance: number) {
+  withinTolerance(other: Point, tolerance: number = 5) {
     return (
       Math.abs(this.x - other.x) <= tolerance &&
       Math.abs(this.y - other.y) <= tolerance

@@ -121,6 +121,16 @@ export class Line extends Model {
     line.width = json.width;
     return line;
   }
+
+  movePoint(verticeIdx: number, newPosition: Point): void {
+    console.log(newPosition.color)
+    console.log("VERTICE INDEX: ", verticeIdx)
+    // console.log(this.vertices[verticeIdx])
+    newPosition.color = this.vertices[verticeIdx].color;
+    this.vertices[verticeIdx] = newPosition;
+    this.computeWidth();
+    this.computeCenter();
+  }
 }
 
 

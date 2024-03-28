@@ -145,6 +145,23 @@ export class Drawer {
     return this.selectedVertice;
   }
 
+  getSelectedVerticeIndex() {
+    if (!this.selectedModel || !this.selectedVertice) {
+      console.log("No model or vertice selected")
+      return -1;
+    }
+
+    console.log("FINDING")
+
+    return this.selectedModel.getVertices().findIndex((vertice) => {
+      console.log("VERTICE", vertice, this.selectedVertice)
+      console.log("WITHIN TOLERANCE", vertice.withinTolerance(this.selectedVertice));
+      // @ts-ignore
+      return vertice.withinTolerance(this.selectedVertice)
+    }
+    );
+  }
+
   draw() {
     if (!this.gl || !this.program || !this.attributes) {
       console.error("WebGL not supported");

@@ -45,6 +45,8 @@ export abstract class Model {
 
   abstract clone(): Model;
 
+  abstract movePoint(verticeIdx: number, newPosition: Point) : void;
+
   getCenter(): Point {
     return this.center;
   }
@@ -211,6 +213,28 @@ export abstract class Model {
 
       this.setVerticeByIndex(newVertice, index);
     });
+  }
+
+  scale(sx: number, sy: number) {
+    const transformationMatrix = TransformationMatrix3.scaling(
+      1,
+      2
+    ).transpose();
+
+    const scaledVertice = this.getVertices()[0];
+
+    const newVertice = transformationMatrix.multiplyPoint(scaledVertice);
+    newVertice.color = scaledVertice.color;
+    this.setVerticeByIndex(newVertice, 0);
+
+
+    // this.getVertices().forEach((vertice, index) => {
+    //   const newVertice = transformationMatrix.multiplyPoint(vertice);
+    //   newVertice.color = vertice.color;
+    //   console.log("NEW SCALE VERTICE" + newVertice + "INDEX" + index + "VERT")
+
+    //   this.setVerticeByIndex(newVertice, index);
+    // });
   }
 
   serialize() {

@@ -7,12 +7,14 @@ import { Point } from "@/webgl/models/primitives/point";
 import { Model } from "@/webgl/models/model";
 import { Color } from "@/webgl/models/primitives/color";
 import { Translator } from "@/webgl/tools/translator";
+import { Scaler } from "@/webgl/tools/scaler";
 import { Rotator } from "@/webgl/tools/rotator";
 import { Line } from "@/webgl/models/line";
 import { Rectangle } from "@/webgl/models/rectangle";
 import toast from "react-hot-toast";
+import { PointMover } from "@/webgl/tools/pointMover";
 
-type Mode = "draw" | "select" | "translate" | "rotate";
+type Mode = "draw" | "select" | "translate" | "rotate" | "scale" | "pointMover";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
 
 export default function Canvas() {
@@ -58,6 +60,8 @@ export default function Canvas() {
   // Tools
   const [translator, setTranslator] = useState<Translator | null>(null);
   const [rotator, setRotator] = useState<Rotator | null>(null);
+  const [scaler, setScaler] = useState<Scaler | null>(null);
+  const [pointMover, setPointMover] = useState<PointMover| null>(null);
 
   const colors = [
     new Color(Math.random(), Math.random(), Math.random(), 1),
@@ -212,6 +216,13 @@ export default function Canvas() {
       return;
     }
 
+    if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
+      pointMover.start(
+        drawer.getSelectedModel() as Model,
+        new Point(e.clientX - rect.left, e.clientY - rect.top)
+      )
+    }
+
     if (mode === "translate" && translator && drawer.getSelectedModel()) {
       translator.start(
         drawer.getSelectedModel() as Model,
@@ -222,6 +233,15 @@ export default function Canvas() {
 
     if (mode === "rotate" && rotator && drawer.getSelectedModel()) {
       rotator.start(
+        drawer.getSelectedModel() as Model,
+        new Point(e.clientX - rect.left, e.clientY - rect.top)
+      );
+      return;
+    }
+
+    if (mode === "scale" && scaler && drawer.getSelectedModel()) {
+      console.log("MODE SCALER");
+      scaler.start(
         drawer.getSelectedModel() as Model,
         new Point(e.clientX - rect.left, e.clientY - rect.top)
       );
@@ -263,6 +283,17 @@ export default function Canvas() {
       return;
     }
 
+    if (mode === "scale" && scaler) {
+      console.log("MOVING SCALER");
+      scaler.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+      return;
+    }
+
+    if (mode === "pointMover" && pointMover) {
+      pointMover.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+      return;
+    }
+
     if (!startPoint || !currentDrawingModel) {
       return;
     }
@@ -297,6 +328,15 @@ export default function Canvas() {
       rotator.end();
     }
 
+    if (mode === "scale" && scaler) {
+      console.log("ENDING SCALER");
+      scaler.end();
+    }
+
+    if (mode === "pointMover" && pointMover) {
+      pointMover.end();
+    }
+
     setCurrentDrawingModel(null);
     setStartPoint(null);
   }
@@ -310,6 +350,22 @@ export default function Canvas() {
     setMode("translate");
     clear();
     if (drawer) setTranslator(new Translator(drawer));
+  }
+
+  function handleScale() {
+    setMode("scale");
+    clear();
+    if (drawer) setScaler(new Scaler(drawer));
+  }
+
+  function handlePointMover() {
+    if (drawer?.getSelectedVertice() === null) {
+      toast.error("Please select a point to move");
+      return;
+    }
+    setMode("pointMover");
+    clear();
+    if (drawer) setPointMover(new PointMover(drawer));
   }
 
   function handleRotate() {
@@ -351,8 +407,14 @@ export default function Canvas() {
         <button className="bg-blue-500 p-2" onClick={handleSelect}>
           Select
         </button>
+        <button className="bg-blue-500 p-2" onClick={handlePointMover}>
+          Point Mover
+        </button>
         <button className="bg-blue-500 p-2" onClick={handleTranslate}>
           Translate
+        </button>
+        <button className="bg-blue-500 p-2" onClick={handleScale}>
+          Scaler [WIP]
         </button>
         <button className="bg-blue-500 p-2" onClick={handleRotate}>
           Rotate

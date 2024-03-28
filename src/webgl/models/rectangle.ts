@@ -39,6 +39,11 @@ export class Rectangle extends Model {
     return rect;
   }
 
+  private computeDimensions() {
+    this.width = this.vertices[0].euclideanDistanceTo(this.vertices[1]);
+    this.height = this.vertices[1].euclideanDistanceTo(this.vertices[2]);
+  }
+
   private computeVertices(startPoint: Point, endPoint: Point) {
     this.width = Math.abs(startPoint.x - endPoint.x);
     this.height = Math.abs(startPoint.y - endPoint.y);
@@ -204,5 +209,47 @@ export class Rectangle extends Model {
       rotatedPoint.y >= nonRotatedRect.minY - tolerance &&
       rotatedPoint.y <= nonRotatedRect.maxY + tolerance
     );
+  }
+
+  movePoint(verticeIdx: number, newPosition: Point) {
+    const origRotate = this.rotateAngleInRadians;
+    this.rotate(-this.rotateAngleInRadians);
+
+    const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
+      -this.rotateAngleInRadians,
+      this.getCenter()
+    )
+      .transpose()
+      .multiplyPoint(newPosition);
+    newPosition = rotatedPoint;
+
+    newPosition.color = this.vertices[verticeIdx].color;
+
+    this.vertices[verticeIdx] = newPosition;
+
+    const prevVerticeIdx = verticeIdx === 0 ? 3 : verticeIdx - 1;
+    const nextVerticeIdx = verticeIdx === 3 ? 0 : verticeIdx + 1;
+
+    // Make sure previous and next vertice Idx point is a rectangle
+    const prevVertice = this.vertices[prevVerticeIdx];
+    const nextVertice = this.vertices[nextVerticeIdx];
+
+    if (verticeIdx % 2 !== 0) {
+      // prevVertice Y has to be equal with current vertice Y
+      prevVertice.y = newPosition.y;
+
+      // nextVertice X has to be equal with current vertice X
+      nextVertice.x = newPosition.x;
+    } else {
+      // prevVertice X has to be equal with current vertice X
+      prevVertice.x = newPosition.x;
+
+      // nextVertice Y has to be equal with current vertice Y
+      nextVertice.y = newPosition.y;
+
+    }
+    this.rotate(origRotate);
+    this.computeDimensions();
+    this.computeCenter();
   }
 }

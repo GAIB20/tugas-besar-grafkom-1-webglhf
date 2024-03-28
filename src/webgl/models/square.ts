@@ -191,4 +191,56 @@ export class Square extends Model {
 
     return square;
   }
+
+
+  movePoint(verticeIdx: number, newPosition: Point) {
+    const origRotate = this.rotateAngleInRadians;
+    this.rotate(-this.rotateAngleInRadians);
+
+    const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
+      -this.rotateAngleInRadians,
+      this.getCenter()
+    )
+      .transpose()
+      .multiplyPoint(newPosition);
+    newPosition = rotatedPoint;
+    
+    newPosition.color = this.vertices[verticeIdx].color;
+
+    let opposingDiag = (verticeIdx + 2) % 4;
+    console.log(opposingDiag)
+    const maxHeightWidthChange = Math.max(
+      Math.abs(this.vertices[opposingDiag].x - newPosition.x),
+      Math.abs(this.vertices[opposingDiag].y - newPosition.y)
+    );
+    newPosition.x = this.vertices[opposingDiag].x + (newPosition.x < this.vertices[opposingDiag].x ? -maxHeightWidthChange : maxHeightWidthChange);
+    newPosition.y = this.vertices[opposingDiag].y + (newPosition.y < this.vertices[opposingDiag].y ? -maxHeightWidthChange : maxHeightWidthChange);
+
+    this.vertices[verticeIdx] = newPosition;
+
+    const prevVerticeIdx = verticeIdx === 0 ? 3 : verticeIdx - 1;
+    const nextVerticeIdx = verticeIdx === 3 ? 0 : verticeIdx + 1;
+
+    // Make sure previous and next vertice Idx point is a rectangle
+    const prevVertice = this.vertices[prevVerticeIdx];
+    const nextVertice = this.vertices[nextVerticeIdx];
+
+    if (verticeIdx % 2 !== 0) {
+      // prevVertice Y has to be equal with current vertice Y
+      prevVertice.y = newPosition.y;
+
+      // nextVertice X has to be equal with current vertice X
+      nextVertice.x = newPosition.x;
+    } else {
+      // prevVertice X has to be equal with current vertice X
+      prevVertice.x = newPosition.x;
+
+      // nextVertice Y has to be equal with current vertice Y
+      nextVertice.y = newPosition.y;
+
+    }
+    this.rotate(origRotate);
+    // this.computeDimensions();
+    this.computeCenter();
+  }
 }
