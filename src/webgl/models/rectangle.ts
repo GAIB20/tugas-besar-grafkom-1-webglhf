@@ -216,7 +216,7 @@ export class Rectangle extends Model {
     this.rotate(-this.rotateAngleInRadians);
 
     const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
-      -this.rotateAngleInRadians,
+      -origRotate,
       this.getCenter()
     )
       .transpose()
@@ -224,6 +224,19 @@ export class Rectangle extends Model {
     newPosition = rotatedPoint;
 
     newPosition.color = this.vertices[verticeIdx].color;
+
+    // Preserve diagonal aspect ratio
+    let opposingDiag = (verticeIdx + 2) % 4;
+
+    let diagonalYXRatio =
+      (this.vertices[verticeIdx].y - this.vertices[opposingDiag].y) /
+      (this.vertices[verticeIdx].x - this.vertices[opposingDiag].x);
+    // console.log("diagonalYXRatio", diagonalYXRatio)
+    const xShift = newPosition.x - this.vertices[verticeIdx].x;
+    // console.log("xShift", xShift)
+
+    newPosition.x = newPosition.x
+    newPosition.y = this.vertices[verticeIdx].y + xShift * diagonalYXRatio;
 
     this.vertices[verticeIdx] = newPosition;
 
@@ -252,4 +265,44 @@ export class Rectangle extends Model {
     this.computeDimensions();
     this.computeCenter();
   }
+
+  // movePoint(verticeIdx: number, newPosition: Point) {
+  //   const origRotate = this.rotateAngleInRadians;
+  //   this.rotate(-this.rotateAngleInRadians);
+
+  //   const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
+  //     -this.rotateAngleInRadians,
+  //     this.getCenter()
+  //   )
+  //     .transpose()
+  //     .multiplyPoint(newPosition);
+  //   newPosition = rotatedPoint;
+  //   newPosition.color = this.vertices[verticeIdx].color;
+  //   this.vertices[verticeIdx] = newPosition;
+
+  //   const prevVerticeIdx = verticeIdx === 0 ? 3 : verticeIdx - 1;
+  //   const nextVerticeIdx = verticeIdx === 3 ? 0 : verticeIdx + 1;
+
+  //   // Make sure previous and next vertice Idx point is a rectangle
+  //   const prevVertice = this.vertices[prevVerticeIdx];
+  //   const nextVertice = this.vertices[nextVerticeIdx];
+
+  //   if (verticeIdx % 2 !== 0) {
+  //     // prevVertice Y has to be equal with current vertice Y
+  //     prevVertice.y = newPosition.y;
+
+  //     // nextVertice X has to be equal with current vertice X
+  //     nextVertice.x = newPosition.x;
+  //   } else {
+  //     // prevVertice X has to be equal with current vertice X
+  //     prevVertice.x = newPosition.x;
+
+  //     // nextVertice Y has to be equal with current vertice Y
+  //     nextVertice.y = newPosition.y;
+
+  //   }
+  //   this.rotate(origRotate);
+  //   this.computeDimensions();
+  //   this.computeCenter();
+  // }
 }

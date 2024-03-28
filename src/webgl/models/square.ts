@@ -137,6 +137,13 @@ export class Square extends Model {
     );
   }
 
+  computeDimensions() {
+    this.size = Math.max(
+      Math.abs(this.vertices[0].x - this.vertices[1].x),
+      Math.abs(this.vertices[0].y - this.vertices[3].y)
+    );
+  }
+
   clone(): Model {
     const square = new Square(new Point(0, 0), new Point(0, 0));
     this.vertices.forEach((vertice, index) => {
@@ -198,7 +205,7 @@ export class Square extends Model {
     this.rotate(-this.rotateAngleInRadians);
 
     const rotatedPoint = TransformationMatrix3.rotationPreserveCenter(
-      -this.rotateAngleInRadians,
+      -origRotate,
       this.getCenter()
     )
       .transpose()
@@ -240,7 +247,7 @@ export class Square extends Model {
 
     }
     this.rotate(origRotate);
-    // this.computeDimensions();
+    this.computeDimensions();
     this.computeCenter();
   }
 }
