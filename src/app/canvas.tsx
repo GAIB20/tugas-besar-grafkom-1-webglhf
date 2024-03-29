@@ -13,6 +13,7 @@ import { Line } from "@/webgl/models/line";
 import { Rectangle } from "@/webgl/models/rectangle";
 import toast from "react-hot-toast";
 import { PointMover } from "@/webgl/tools/pointMover";
+import Modal from "react-modal";
 
 type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
@@ -24,6 +25,15 @@ export default function Canvas() {
   const [currentDrawingModel, setCurrentDrawingModel] = useState<Model | null>(
     null
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
   const [mode, setMode] = useState<Mode>("draw");
   const [objectToDraw, setObjectToDraw] = useState<ModelType>("line");
   const [color, setColor] = useState("#000000");
@@ -573,11 +583,49 @@ export default function Canvas() {
         <label className="text-base font-semibold text-white mb-2">Color picker:</label>
         <input type="color" value={color} onChange={handleColorChange} className="rounded-md mb-1" />
 
+        <button className="bg-blue-500 p-2 rounded-md text-white mb-2" onClick={openModal}>
+          Help!
+        </button>
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={closeModal}
+          contentLabel="Help Modal"
+          ariaHideApp={false}
+          style={{
+            overlay: {
+              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+            },
+            content: {
+              backgroundColor: 'gray',
+              color: 'white',
+              width: '500px',
+              height: '500px',
+              margin: 'auto',
+              padding: '20px',
+              borderRadius: '8px',
+            }
+          }}
+        >
+          <h2 className="text-xl font-semibold mb-4">Tubes Grafkom 2 - GLHF</h2>
+          <p className="mb-2">Here are some of the functionalities of the app:</p>
+          <ul className="text-left mb-4">
+            <li>Use the dropdowns to select the drawing option and operation mode.</li>
+            <li>Draw shapes on the canvas by clicking and dragging.</li>
+            <li>Select drawn objects by clicking on them.</li>
+            <li>Perform operations like translate, rotate, or delete on selected objects.</li>
+            <li>If a point is selected, it can be moved while preserving geometry (except for polygons).</li>
+            <li>Change the color of selected models or points using the color picker.</li>
+            <li>Save and reload models from files.</li>
+            <li>Each selected object has its own properties like width/height that can be changed.</li>
+          </ul>
+          <button onClick={closeModal} className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4">Got it!</button>
+        </Modal>
+
         <label className="text-base font-semibold text-white mb-2">Selected model options:</label>
         {renderDimensionInputs()}
         {drawer?.getSelectedModel() && (
           <button className="bg-blue-500 p-2 rounded-md text-white mt-2" onClick={handleDelete}>
-            Delete Selected Model
+            Delete Model
           </button>
         )}
       </div>
