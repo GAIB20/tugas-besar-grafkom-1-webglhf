@@ -14,7 +14,7 @@ import { Rectangle } from "@/webgl/models/rectangle";
 import toast from "react-hot-toast";
 import { PointMover } from "@/webgl/tools/pointMover";
 
-type Mode = "draw" | "select" | "translate" | "rotate" | "scale" | "pointMover";
+type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
 
 export default function Canvas() {
@@ -196,7 +196,7 @@ export default function Canvas() {
 
     if (selectedModel?.getType() === "line") {
       const line = selectedModel as Line;
-      setWidth(line.getWidth());
+      setWidth(Math.round(line.getWidth()));
     }
     if (selectedModel?.getType() === "square") {
       const square = selectedModel as Square;
@@ -267,14 +267,14 @@ export default function Canvas() {
       return;
     }
 
-    if (mode === "scale" && scaler && drawer.getSelectedModel()) {
-      console.log("MODE SCALER");
-      scaler.start(
-        drawer.getSelectedModel() as Model,
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
-      );
-      return;
-    }
+    // if (mode === "scale" && scaler && drawer.getSelectedModel()) {
+    //   console.log("MODE SCALER");
+    //   scaler.start(
+    //     drawer.getSelectedModel() as Model,
+    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
+    //   );
+    //   return;
+    // }
 
     const model = getModel(e, rect);
 
@@ -311,11 +311,11 @@ export default function Canvas() {
       return;
     }
 
-    if (mode === "scale" && scaler) {
-      console.log("MOVING SCALER");
-      scaler.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-      return;
-    }
+    // if (mode === "scale" && scaler) {
+    //   console.log("MOVING SCALER");
+    //   scaler.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+    //   return;
+    // }
 
     if (mode === "pointMover" && pointMover) {
       pointMover.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
@@ -357,10 +357,10 @@ export default function Canvas() {
       rotator.end();
     }
 
-    if (mode === "scale" && scaler) {
-      console.log("ENDING SCALER");
-      scaler.end();
-    }
+    // if (mode === "scale" && scaler) {
+    //   console.log("ENDING SCALER");
+    //   scaler.end();
+    // }
 
     if (mode === "pointMover" && pointMover) {
       pointMover.end();
@@ -413,11 +413,11 @@ export default function Canvas() {
     if (drawer) setTranslator(new Translator(drawer));
   }
 
-  function handleScale() {
-    setMode("scale");
-    clear();
-    if (drawer) setScaler(new Scaler(drawer));
-  }
+  // function handleScale() {
+  //   setMode("scale");
+  //   clear();
+  //   if (drawer) setScaler(new Scaler(drawer));
+  // }
 
   function handlePointMover() {
     if (drawer?.getSelectedVertice() === null) {
@@ -442,49 +442,120 @@ export default function Canvas() {
     setRotator(null);
   }
 
+  const handleOperatorSelect = (selectedOption) => {
+    switch (selectedOption) {
+      case 'select':
+        handleSelect();
+        break;
+      case 'pointMover':
+        handlePointMover();
+        break;
+      case 'translate':
+        handleTranslate();
+        break;
+      case 'rotate':
+        handleRotate();
+        break;
+      case 'draw':
+        setMode("draw");
+        clear();
+        drawer?.unselect();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const renderDimensionInputs = () => {
+    if (selectedModelType === "line" || selectedModelType === "square") {
+      return (
+        <div>
+          <label htmlFor="lineWidth" className="text-md font-semibold">Width: </label>
+          <input
+            id="lineWidth"
+            type="number"
+            value={width}
+            onChange={(e) => {
+              setWidth(parseInt(e.target.value));
+              notifyChange(e.target.value);
+            }}
+            className="p-1 border border-gray-300 rounded-md text-black"
+          />
+        </div>
+      );
+    } else if (selectedModelType === "rectangle") {
+      return (
+        <div>
+          <label htmlFor="rectangleHeight" className="text-md font-semibold">Height: </label>
+          <input
+            id="rectangleHeight"
+            type="number"
+            value={height}
+            onChange={(e) => {
+              setHeight(parseInt(e.target.value))
+              notifyChange(width, e.target.value);
+            }}
+            className="p-1 border border-gray-300 rounded-md text-black"
+          />
+          <br />
+          <label htmlFor="rectangleWidth" className="text-md font-semibold">Width: </label>
+          <input
+            id="rectangleWidth"
+            type="number"
+            value={width}
+            onChange={(e) => {
+              setWidth(parseInt(e.target.value))
+              notifyChange(e.target.value, height);
+            }}
+            className="p-1 border border-gray-300 rounded-md text-black"
+          />
+        </div>
+      );
+    } else {
+      return null;
+    }
+  };
+
   return (
     <>
       <canvas
         ref={canvasRef}
         id="webgl-canvas"
-        className="w-full h-full bg-gray-400"
+        className="w-full h-full bg-gray-200"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       />
-      <div className="flex flex-row gap-5">
-        <label htmlFor="objectToDraw">Select Drawing Option:</label>
+
+      <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
+        <label htmlFor="objectToDraw" className="text-base font-semibold text-white mb-2">Select Drawing Option:</label>
         <select
           id="objectToDraw"
           value={objectToDraw}
-          onChange={(event) => setObjectToDraw(event.target.value as ModelType)}
-          className="bg-blue-500 p-2"
+          onChange={(event) => { setObjectToDraw(event.target.value as ModelType); setMode("draw"); }}
+          className="bg-blue-500 p-2 rounded-md text-white mb-2"
         >
-          <option value="line">Line</option>
-          <option value="rectangle">Rectangle</option>
-          <option value="square">Square</option>
-          <option value="polygon">Polygon [WIP]</option>
+          <option value="line">Draw Line</option>
+          <option value="rectangle">Draw Rectangle</option>
+          <option value="square">Draw Square</option>
+          <option value="polygon">Draw Polygon [Work in Progress]</option>
         </select>
-        <button className="bg-blue-500 p-2" onClick={handleSelect}>
-          Select
-        </button>
-        <button className="bg-blue-500 p-2" onClick={handlePointMover}>
-          Point Mover
-        </button>
-        <button className="bg-blue-500 p-2" onClick={handleTranslate}>
-          Translate
-        </button>
-        <button className="bg-blue-500 p-2" onClick={handleScale}>
-          Scaler [WIP]
-        </button>
-        <button className="bg-blue-500 p-2" onClick={handleRotate}>
-          Rotate
-        </button>
-        <button className="bg-blue-500 p-2" onClick={handleDelete}>
-          Delete
-        </button>
+        <label htmlFor="mode" className="text-base font-semibold text-white mb-2">Select Operation:</label>
+        <select
+          id="mode"
+          value={mode}
+          onChange={(event) => handleOperatorSelect(event.target.value)}
+          className="bg-blue-500 p-2 rounded-md text-white mb-2"
+        >
+          <option value="draw">Draw Mode</option>
+          <option value="select">Select Mode</option>
+          <option value="pointMover">Point Mover Mode</option>
+          <option value="translate">Translate Mode</option>
+          <option value="rotate">Rotate Mode</option>
+        </select>
+
         <button
-          className="bg-blue-500 p-2"
+          className="bg-blue-500 p-2 rounded-md text-white mb-2"
           onClick={() => {
             drawer?.clearAllModels();
             toast.success("Canvas cleared!");
@@ -492,66 +563,26 @@ export default function Canvas() {
         >
           Reset Canvas
         </button>
-        <button className="bg-blue-500 p-2" onClick={handleSave}>
-          Save
+        <button className="bg-blue-500 p-2 rounded-md text-white mb-2" onClick={handleSave}>
+          Save Canvas
         </button>
-        <div>
-          <h1>Load Models</h1>
+        <div className="mb-2">
+          <h1 className="text-base font-semibold text-white mb-1">Load Models from File</h1>
           <input type="file" accept=".txt" onChange={handleLoad} />
         </div>
-        {(selectedModelType === "line" || selectedModelType === "square") && (
-          <div>
-            Width:
-            <input
-              type="number"
-              value={width}
-              onChange={(e) => {
-                setWidth(parseInt(e.target.value));
-                notifyChange(e.target.value);
-              }}
-              style={{ color: 'black' }}
-            />
-          </div>
+        <label className="text-base font-semibold text-white mb-2">Color picker:</label>
+        <input type="color" value={color} onChange={handleColorChange} className="rounded-md mb-1" />
+
+        <label className="text-base font-semibold text-white mb-2">Selected model options:</label>
+        {renderDimensionInputs()}
+        {drawer?.getSelectedModel() && (
+          <button className="bg-blue-500 p-2 rounded-md text-white mt-2" onClick={handleDelete}>
+            Delete Selected Model
+          </button>
         )}
-        {selectedModelType === "rectangle" && (
-          <div>
-            Height:
-            <input
-              type="number"
-              value={height}
-              onChange={(e) => {
-                setHeight(parseInt(e.target.value))
-                notifyChange(width, e.target.value);
-              }
-              }
-              style={{ color: 'black' }}
-            />
-            <br />
-            Width:
-            <input
-              type="number"
-              value={width}
-              onChange={(e) => {
-                setWidth(parseInt(e.target.value))
-                notifyChange(e.target.value, height);
-              }
-              }
-              style={{ color: 'black' }}
-            />
-          </div>
-        )}
-        <input type="color" value={color} onChange={handleColorChange} />
-        <button
-          className="bg-blue-500 p-2"
-          onClick={() => {
-            setMode("draw");
-            clear();
-            drawer?.unselect();
-          }}
-        >
-          Draw
-        </button>
       </div>
+
+
     </>
   );
 }
