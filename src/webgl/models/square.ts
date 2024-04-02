@@ -13,7 +13,13 @@ export class Square extends Model {
 
   private size: number = 0;
 
-  constructor(startPoint: Point, endPoint: Point) {
+  constructor(
+    startPoint: Point,
+    endPoint: Point,
+    private observers?: {
+      onSizeChange: Function;
+    }
+  ) {
     super();
     this.computeVertices(startPoint, endPoint);
   }
@@ -53,6 +59,7 @@ export class Square extends Model {
         : startPoint.y + this.size;
 
     this.computeCenter();
+    this.observers?.onSizeChange(this.size);
   }
 
   protected computeCenter() {
@@ -66,6 +73,9 @@ export class Square extends Model {
 
   protected setVerticeByIndex(vertice: Point, index: number) {
     this.vertices[index] = vertice;
+
+    // compute size
+    this.computeDimensions();
   }
 
   getSize() {
@@ -73,31 +83,12 @@ export class Square extends Model {
   }
 
   setSize(size: number) {
-    // Calculate the original distance between the first and fourth points (opposite points of the square)
-    const originalDistance = this.vertices[3].euclideanDistanceTo(this.vertices[0]);
+    const sx = size / this.size;
 
-    // Calculate the scaling factor based on the original distance and the new size
-    const scaleFactor = size / originalDistance;
+    this.scale(sx, sx);
 
-    // Calculate the new coordinates for the fourth point
-    const newX = this.vertices[0].x + (this.vertices[3].x - this.vertices[0].x) * scaleFactor;
-    const newY = this.vertices[0].y + (this.vertices[3].y - this.vertices[0].y) * scaleFactor;
-
-    // Update the coordinates of the fourth point
-    this.vertices[3].x = newX;
-    this.vertices[3].y = newY;
-
-    // Adjust the other points to maintain square shape
-    const diffX = this.vertices[3].x - this.vertices[0].x;
-    const diffY = this.vertices[3].y - this.vertices[0].y;
-
-    this.vertices[1].x = this.vertices[0].x + diffY;
-    this.vertices[1].y = this.vertices[0].y - diffX;
-
-    this.vertices[2].x = this.vertices[1].x + diffX;
-    this.vertices[2].y = this.vertices[1].y + diffY;
-
-    this.computeDimensions(); 
+    this.computeDimensions();
+    this.computeCenter();
   }
 
   setGeometry(gl: WebGL2RenderingContext) {
@@ -166,6 +157,8 @@ export class Square extends Model {
       Math.abs(this.vertices[0].x - this.vertices[1].x),
       Math.abs(this.vertices[0].y - this.vertices[3].y)
     );
+
+    this.observers?.onSizeChange(this.size);
   }
 
   clone(): Model {
@@ -218,11 +211,10 @@ export class Square extends Model {
 
     square.rotateAngleInRadians = json.rotateAngleInRadians;
     square.computeCenter();
-    square.size = json.size;
+    // square.size = json.size;
 
     return square;
   }
-
 
   movePoint(verticeIdx: number, newPosition: Point) {
     const origRotate = this.rotateAngleInRadians;
@@ -239,13 +231,21 @@ export class Square extends Model {
     newPosition.color = this.vertices[verticeIdx].color;
 
     let opposingDiag = (verticeIdx + 2) % 4;
-    console.log(opposingDiag)
+    console.log(opposingDiag);
     const maxHeightWidthChange = Math.max(
       Math.abs(this.vertices[opposingDiag].x - newPosition.x),
       Math.abs(this.vertices[opposingDiag].y - newPosition.y)
     );
-    newPosition.x = this.vertices[opposingDiag].x + (newPosition.x < this.vertices[opposingDiag].x ? -maxHeightWidthChange : maxHeightWidthChange);
-    newPosition.y = this.vertices[opposingDiag].y + (newPosition.y < this.vertices[opposingDiag].y ? -maxHeightWidthChange : maxHeightWidthChange);
+    newPosition.x =
+      this.vertices[opposingDiag].x +
+      (newPosition.x < this.vertices[opposingDiag].x
+        ? -maxHeightWidthChange
+        : maxHeightWidthChange);
+    newPosition.y =
+      this.vertices[opposingDiag].y +
+      (newPosition.y < this.vertices[opposingDiag].y
+        ? -maxHeightWidthChange
+        : maxHeightWidthChange);
 
     this.vertices[verticeIdx] = newPosition;
 
@@ -268,7 +268,6 @@ export class Square extends Model {
 
       // nextVertice Y has to be equal with current vertice Y
       nextVertice.y = newPosition.y;
-
     }
     this.rotate(origRotate);
     this.computeDimensions();

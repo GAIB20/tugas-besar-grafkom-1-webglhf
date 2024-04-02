@@ -4,9 +4,9 @@ import { Point } from "../models/primitives/point";
 export class TransformationMatrix3 {
   static projection(width: number, height: number): Matrix3 {
     return new Matrix3([
-      [2 / width, 0, 0],
-      [0, -2 / height, 0],
-      [-1, 1, 1],
+      [2 / width, 0, -1],
+      [0, -2 / height, 1],
+      [0, 0, 1],
     ]);
   }
 
@@ -44,12 +44,36 @@ export class TransformationMatrix3 {
     ]);
   }
 
+  static shear(shx: number, shy: number): Matrix3 {
+    return new Matrix3([
+      [1, shy, 0],
+      [shx, 1, 0],
+      [0, 0, 1],
+    ]);
+  }
+
   static rotationPreserveCenter(
     angleInRadians: number,
     center: Point
   ): Matrix3 {
     return TransformationMatrix3.translation(-center.x, -center.y).multiply(
       TransformationMatrix3.rotation(angleInRadians).multiply(
+        TransformationMatrix3.translation(center.x, center.y)
+      )
+    );
+  }
+
+  static scalingPreserveCenter(sx: number, sy: number, center: Point): Matrix3 {
+    return TransformationMatrix3.translation(-center.x, -center.y).multiply(
+      TransformationMatrix3.scaling(sx, sy).multiply(
+        TransformationMatrix3.translation(center.x, center.y)
+      )
+    );
+  }
+
+  static shearPreserveCenter(shx: number, shy: number, center: Point): Matrix3 {
+    return TransformationMatrix3.translation(-center.x, -center.y).multiply(
+      TransformationMatrix3.shear(shx, shy).multiply(
         TransformationMatrix3.translation(center.x, center.y)
       )
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { Drawer } from "@/webgl/drawer";
 import { Square } from "@/webgl/models/square";
 import { Point } from "@/webgl/models/primitives/point";
@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import { PointMover } from "@/webgl/tools/pointMover";
 import Modal from "react-modal";
 
-type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover";
+type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
 
 export default function Canvas() {
@@ -41,7 +41,9 @@ export default function Canvas() {
   const [height, setHeight] = useState(0);
   const [width, setWidth] = useState(0);
 
-  const [selectedModelType, setSelectedModelType] = useState<ModelType | null>(null);
+  const [selectedModelType, setSelectedModelType] = useState<ModelType | null>(
+    null
+  );
 
   const handleColorChange = (event: any) => {
     setColor(event.target.value);
@@ -78,17 +80,34 @@ export default function Canvas() {
   const [scaler, setScaler] = useState<Scaler | null>(null);
   const [pointMover, setPointMover] = useState<PointMover | null>(null);
 
-  const colors = [
+  // default colors
+  const [colors, setColors] = useState<Color[]>([
     new Color(Math.random(), Math.random(), Math.random(), 1),
     new Color(Math.random(), Math.random(), Math.random(), 1),
     new Color(Math.random(), Math.random(), Math.random(), 1),
     new Color(Math.random(), Math.random(), Math.random(), 1),
-  ];
+  ]);
 
   useEffect(() => {
     setupWebGL();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const mapModeToTool = {
+    translate: translator,
+    rotate: rotator,
+    scale: scaler,
+    pointMover: pointMover,
+  };
+
+  function randomizeColors() {
+    return [
+      new Color(Math.random(), Math.random(), Math.random(), 1),
+      new Color(Math.random(), Math.random(), Math.random(), 1),
+      new Color(Math.random(), Math.random(), Math.random(), 1),
+      new Color(Math.random(), Math.random(), Math.random(), 1),
+    ];
+  }
 
   function setupWebGL() {
     console.log("Setting up WebGL");
@@ -101,28 +120,42 @@ export default function Canvas() {
     setDrawer(drawer);
   }
 
-  // @ts-ignore
-  function getModel(e, rect): Model {
+  function getModel(
+    e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>,
+    rect: DOMRect
+  ): Model | null {
     if (objectToDraw === "line") {
       return new Line(
         new Point(e.clientX - rect.left, e.clientY - rect.top),
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
+        new Point(e.clientX - rect.left, e.clientY - rect.top),
+        {
+          onWidthChange: (width: number) => setWidth(Math.round(width)),
+        }
       );
     }
 
     if (objectToDraw === "rectangle") {
       return new Rectangle(
         new Point(e.clientX - rect.left, e.clientY - rect.top),
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
+        new Point(e.clientX - rect.left, e.clientY - rect.top),
+        {
+          onWidthChange: (width: number) => setWidth(Math.round(width)),
+          onHeightChange: (height: number) => setHeight(Math.round(height)),
+        }
       );
     }
 
     if (objectToDraw === "square") {
       return new Square(
         new Point(e.clientX - rect.left, e.clientY - rect.top),
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
+        new Point(e.clientX - rect.left, e.clientY - rect.top),
+        {
+          onSizeChange: (size: number) => setWidth(Math.round(size)),
+        }
       );
     }
+
+    return null;
   }
 
   function handleDelete() {
@@ -201,26 +234,28 @@ export default function Canvas() {
     reader.readAsText(file); // Read file as text
   }
 
-  function computeDimension() {
-    const selectedModel = drawer?.getSelectedModel();
+  // function computeDimension() {
+  //   const selectedModel = drawer?.getSelectedModel();
 
-    if (selectedModel?.getType() === "line") {
-      const line = selectedModel as Line;
-      setWidth(Math.round(line.getWidth()));
-    }
-    if (selectedModel?.getType() === "square") {
-      const square = selectedModel as Square;
-      setWidth(square.getSize());
-    }
+  //   if (selectedModel?.getType() === "line") {
+  //     const line = selectedModel as Line;
+  //     setWidth(Math.round(line.getWidth()));
+  //   }
+  //   if (selectedModel?.getType() === "square") {
+  //     const square = selectedModel as Square;
+  //     setWidth(square.getSize());
+  //   }
 
-    if (selectedModel?.getType() === "rectangle") {
-      const rectangle = selectedModel as Rectangle;
-      setHeight(rectangle.getHeight());
-      setWidth(rectangle.getWidth());
-    }
-  }
+  //   if (selectedModel?.getType() === "rectangle") {
+  //     const rectangle = selectedModel as Rectangle;
+  //     setHeight(rectangle.getHeight());
+  //     setWidth(rectangle.getWidth());
+  //   }
+  // }
 
-  function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+  function handleMouseDown(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
     console.log("Mouse down", e.clientX, e.clientY);
     if (canvasRef.current === null || !drawer) {
       return;
@@ -245,7 +280,7 @@ export default function Canvas() {
 
       if (selectedModel) {
         drawer.select(selectedModel, pointSelected);
-        computeDimension();
+        // computeDimension();
         setSelectedModelType(selectedModel.getType() as ModelType);
       } else if (mode === "select") {
         drawer?.unselect();
@@ -254,28 +289,44 @@ export default function Canvas() {
       return;
     }
 
-    if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
-      pointMover.start(
-        drawer.getSelectedModel() as Model,
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
-      )
+    if (mode !== "draw") {
+      if (mode === "pointMover" && !drawer.getSelectedVertice()) {
+        toast.error("Please select a point to move");
+        return;
+      }
+
+      const tool = mapModeToTool[mode];
+      if (tool) {
+        tool.start(
+          drawer.getSelectedModel() as Model,
+          new Point(e.clientX - rect.left, e.clientY - rect.top)
+        );
+        return;
+      }
     }
 
-    if (mode === "translate" && translator && drawer.getSelectedModel()) {
-      translator.start(
-        drawer.getSelectedModel() as Model,
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
-      );
-      return;
-    }
+    // if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
+    //   pointMover.start(
+    //     drawer.getSelectedModel() as Model,
+    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
+    //   );
+    // }
 
-    if (mode === "rotate" && rotator && drawer.getSelectedModel()) {
-      rotator.start(
-        drawer.getSelectedModel() as Model,
-        new Point(e.clientX - rect.left, e.clientY - rect.top)
-      );
-      return;
-    }
+    // if (mode === "translate" && translator && drawer.getSelectedModel()) {
+    //   translator.start(
+    //     drawer.getSelectedModel() as Model,
+    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
+    //   );
+    //   return;
+    // }
+
+    // if (mode === "rotate" && rotator && drawer.getSelectedModel()) {
+    //   rotator.start(
+    //     drawer.getSelectedModel() as Model,
+    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
+    //   );
+    //   return;
+    // }
 
     // if (mode === "scale" && scaler && drawer.getSelectedModel()) {
     //   console.log("MODE SCALER");
@@ -288,9 +339,15 @@ export default function Canvas() {
 
     const model = getModel(e, rect);
 
+    if (!model) {
+      console.error("Model not found");
+      return;
+    }
+
     model.isDrawing = true;
     drawer.addModel(model);
 
+    setColors(randomizeColors());
     model.getVertices().forEach((point, index) => {
       point.color = colors[index];
     });
@@ -299,7 +356,9 @@ export default function Canvas() {
     setStartPoint(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
   }
 
-  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+  function handleMouseMove(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
     if (!drawer || !canvasRef.current) {
       return;
     }
@@ -311,15 +370,24 @@ export default function Canvas() {
 
     const rect = canvasRef.current?.getBoundingClientRect();
 
-    if (mode === "translate" && translator) {
-      translator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-      return;
+    if (mode !== "draw") {
+      // @ts-ignore
+      const tool = mapModeToTool[mode];
+      if (tool) {
+        tool.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+        return;
+      }
     }
 
-    if (mode === "rotate" && rotator) {
-      rotator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-      return;
-    }
+    // if (mode === "translate" && translator) {
+    //   translator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+    //   return;
+    // }
+
+    // if (mode === "rotate" && rotator) {
+    //   rotator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+    //   return;
+    // }
 
     // if (mode === "scale" && scaler) {
     //   console.log("MOVING SCALER");
@@ -327,10 +395,10 @@ export default function Canvas() {
     //   return;
     // }
 
-    if (mode === "pointMover" && pointMover) {
-      pointMover.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-      return;
-    }
+    // if (mode === "pointMover" && pointMover) {
+    //   pointMover.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
+    //   return;
+    // }
 
     if (!startPoint || !currentDrawingModel) {
       return;
@@ -348,10 +416,12 @@ export default function Canvas() {
     });
 
     drawer.draw();
-    computeDimension();
+    // computeDimension();
   }
 
-  function handleMouseUp(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+  function handleMouseUp(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
     console.log("Mouse up", e.clientX, e.clientY);
 
     if (currentDrawingModel) {
@@ -359,43 +429,60 @@ export default function Canvas() {
       model.isDrawing = false;
     }
 
-    if (mode === "translate" && translator) {
-      translator.end();
+    if (mode !== "draw") {
+      // @ts-ignore
+      const tool = mapModeToTool[mode];
+      if (tool) {
+        tool.end();
+
+        // if (mode === "pointMover") {
+        //   computeDimension();
+        // }
+      }
     }
 
-    if (mode === "rotate" && rotator) {
-      rotator.end();
-    }
+    // if (mode === "translate" && translator) {
+    //   translator.end();
+    // }
+
+    // if (mode === "rotate" && rotator) {
+    //   rotator.end();
+    // }
 
     // if (mode === "scale" && scaler) {
     //   console.log("ENDING SCALER");
     //   scaler.end();
     // }
 
-    if (mode === "pointMover" && pointMover) {
-      pointMover.end();
-      computeDimension();
-    }
+    // if (mode === "pointMover" && pointMover) {
+    //   pointMover.end();
+    //   computeDimension();
+    // }
 
     setCurrentDrawingModel(null);
     setStartPoint(null);
   }
 
-  function notifyChange(width, height) {
+  function notifyChange(width?: number, height?: number) {
+    if (!width || !height) {
+      toast.error("Width and Height must be greater than 0");
+      return;
+    }
+
     if (!drawer) {
       return;
     }
 
-    if (width < 1 || height < 1) {
+    if (width < 10 || height < 10) {
       toast.error("Width and Height must be greater than 10");
       return;
     }
-    console.log("NOTIFYING CHANGE" + width + " " + height)
+    console.log("NOTIFYING CHANGE" + width + " " + height);
 
     const selectedModel = drawer.getSelectedModel();
     if (selectedModel?.getType() === "line") {
       const line = selectedModel as Line;
-      selectedModel.setWidth(width);
+      line.setWidth(width);
     }
 
     if (selectedModel?.getType() === "square") {
@@ -445,6 +532,12 @@ export default function Canvas() {
     if (drawer) setRotator(new Rotator(drawer));
   }
 
+  function handleScale() {
+    setMode("scale");
+    clear();
+    if (drawer) setScaler(new Scaler(drawer));
+  }
+
   function clear() {
     setStartPoint(null);
     setCurrentDrawingModel(null);
@@ -452,21 +545,24 @@ export default function Canvas() {
     setRotator(null);
   }
 
-  const handleOperatorSelect = (selectedOption) => {
+  const handleOperatorSelect = (selectedOption: Mode) => {
     switch (selectedOption) {
-      case 'select':
+      case "select":
         handleSelect();
         break;
-      case 'pointMover':
+      case "pointMover":
         handlePointMover();
         break;
-      case 'translate':
+      case "translate":
         handleTranslate();
         break;
-      case 'rotate':
+      case "rotate":
         handleRotate();
         break;
-      case 'draw':
+      case "scale":
+        handleScale();
+        break;
+      case "draw":
         setMode("draw");
         clear();
         drawer?.unselect();
@@ -480,14 +576,16 @@ export default function Canvas() {
     if (selectedModelType === "line" || selectedModelType === "square") {
       return (
         <div>
-          <label htmlFor="lineWidth" className="text-md font-semibold">Width: </label>
+          <label htmlFor="lineWidth" className="text-md font-semibold">
+            Width:{" "}
+          </label>
           <input
             id="lineWidth"
             type="number"
             value={width}
             onChange={(e) => {
               setWidth(parseInt(e.target.value));
-              notifyChange(e.target.value);
+              notifyChange(parseInt(e.target.value), parseInt(e.target.value));
             }}
             className="p-1 border border-gray-300 rounded-md text-black"
           />
@@ -496,26 +594,30 @@ export default function Canvas() {
     } else if (selectedModelType === "rectangle") {
       return (
         <div>
-          <label htmlFor="rectangleHeight" className="text-md font-semibold">Height: </label>
+          <label htmlFor="rectangleHeight" className="text-md font-semibold">
+            Height:{" "}
+          </label>
           <input
             id="rectangleHeight"
             type="number"
             value={height}
             onChange={(e) => {
-              setHeight(parseInt(e.target.value))
-              notifyChange(width, e.target.value);
+              setHeight(parseInt(e.target.value));
+              notifyChange(width, parseInt(e.target.value));
             }}
             className="p-1 border border-gray-300 rounded-md text-black"
           />
           <br />
-          <label htmlFor="rectangleWidth" className="text-md font-semibold">Width: </label>
+          <label htmlFor="rectangleWidth" className="text-md font-semibold">
+            Width:{" "}
+          </label>
           <input
             id="rectangleWidth"
             type="number"
             value={width}
             onChange={(e) => {
-              setWidth(parseInt(e.target.value))
-              notifyChange(e.target.value, height);
+              setWidth(parseInt(e.target.value));
+              notifyChange(parseInt(e.target.value), height);
             }}
             className="p-1 border border-gray-300 rounded-md text-black"
           />
@@ -538,11 +640,19 @@ export default function Canvas() {
       />
 
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
-        <label htmlFor="objectToDraw" className="text-base font-semibold text-white mb-2">Select Drawing Option:</label>
+        <label
+          htmlFor="objectToDraw"
+          className="text-base font-semibold text-white mb-2"
+        >
+          Select Drawing Option:
+        </label>
         <select
           id="objectToDraw"
           value={objectToDraw}
-          onChange={(event) => { setObjectToDraw(event.target.value as ModelType); setMode("draw"); }}
+          onChange={(event) => {
+            setObjectToDraw(event.target.value as ModelType);
+            setMode("draw");
+          }}
           className="bg-blue-500 p-2 rounded-md text-white mb-2"
         >
           <option value="line">Draw Line</option>
@@ -550,11 +660,16 @@ export default function Canvas() {
           <option value="square">Draw Square</option>
           <option value="polygon">Draw Polygon [Work in Progress]</option>
         </select>
-        <label htmlFor="mode" className="text-base font-semibold text-white mb-2">Select Operation:</label>
+        <label
+          htmlFor="mode"
+          className="text-base font-semibold text-white mb-2"
+        >
+          Select Operation:
+        </label>
         <select
           id="mode"
           value={mode}
-          onChange={(event) => handleOperatorSelect(event.target.value)}
+          onChange={(event) => handleOperatorSelect(event.target.value as Mode)}
           className="bg-blue-500 p-2 rounded-md text-white mb-2"
         >
           <option value="draw">Draw Mode</option>
@@ -562,6 +677,7 @@ export default function Canvas() {
           <option value="pointMover">Point Mover Mode</option>
           <option value="translate">Translate Mode</option>
           <option value="rotate">Rotate Mode</option>
+          <option value="scale">Scale Mode</option>
         </select>
 
         <button
@@ -573,17 +689,32 @@ export default function Canvas() {
         >
           Reset Canvas
         </button>
-        <button className="bg-blue-500 p-2 rounded-md text-white mb-2" onClick={handleSave}>
+        <button
+          className="bg-blue-500 p-2 rounded-md text-white mb-2"
+          onClick={handleSave}
+        >
           Save Canvas
         </button>
         <div className="mb-2">
-          <h1 className="text-base font-semibold text-white mb-1">Load Models from File</h1>
+          <h1 className="text-base font-semibold text-white mb-1">
+            Load Models from File
+          </h1>
           <input type="file" accept=".txt" onChange={handleLoad} />
         </div>
-        <label className="text-base font-semibold text-white mb-2">Color picker:</label>
-        <input type="color" value={color} onChange={handleColorChange} className="rounded-md mb-1" />
+        <label className="text-base font-semibold text-white mb-2">
+          Color picker:
+        </label>
+        <input
+          type="color"
+          value={color}
+          onChange={handleColorChange}
+          className="rounded-md mb-1"
+        />
 
-        <button className="bg-blue-500 p-2 rounded-md text-white mb-2" onClick={openModal}>
+        <button
+          className="bg-blue-500 p-2 rounded-md text-white mb-2"
+          onClick={openModal}
+        >
           Help!
         </button>
         <Modal
@@ -593,44 +724,68 @@ export default function Canvas() {
           ariaHideApp={false}
           style={{
             overlay: {
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
             },
             content: {
-              backgroundColor: 'gray',
-              color: 'white',
-              width: '500px',
-              height: '500px',
-              margin: 'auto',
-              padding: '20px',
-              borderRadius: '8px',
-            }
+              backgroundColor: "gray",
+              color: "white",
+              width: "500px",
+              height: "500px",
+              margin: "auto",
+              padding: "20px",
+              borderRadius: "8px",
+            },
           }}
         >
           <h2 className="text-xl font-semibold mb-4">Tubes Grafkom 2 - GLHF</h2>
-          <p className="mb-2">Here are some of the functionalities of the app:</p>
+          <p className="mb-2">
+            Here are some of the functionalities of the app:
+          </p>
           <ul className="text-left mb-4">
-            <li>Use the dropdowns to select the drawing option and operation mode.</li>
+            <li>
+              Use the dropdowns to select the drawing option and operation mode.
+            </li>
             <li>Draw shapes on the canvas by clicking and dragging.</li>
             <li>Select drawn objects by clicking on them.</li>
-            <li>Perform operations like translate, rotate, or delete on selected objects.</li>
-            <li>If a point is selected, it can be moved while preserving geometry (except for polygons).</li>
-            <li>Change the color of selected models or points using the color picker.</li>
+            <li>
+              Perform operations like translate, rotate, or delete on selected
+              objects.
+            </li>
+            <li>
+              If a point is selected, it can be moved while preserving geometry
+              (except for polygons).
+            </li>
+            <li>
+              Change the color of selected models or points using the color
+              picker.
+            </li>
             <li>Save and reload models from files.</li>
-            <li>Each selected object has its own properties like width/height that can be changed.</li>
+            <li>
+              Each selected object has its own properties like width/height that
+              can be changed.
+            </li>
           </ul>
-          <button onClick={closeModal} className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4">Got it!</button>
+          <button
+            onClick={closeModal}
+            className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
+          >
+            Got it!
+          </button>
         </Modal>
 
-        <label className="text-base font-semibold text-white mb-2">Selected model options:</label>
+        <label className="text-base font-semibold text-white mb-2">
+          Selected model options:
+        </label>
         {renderDimensionInputs()}
         {drawer?.getSelectedModel() && (
-          <button className="bg-blue-500 p-2 rounded-md text-white mt-2" onClick={handleDelete}>
+          <button
+            className="bg-blue-500 p-2 rounded-md text-white mt-2"
+            onClick={handleDelete}
+          >
             Delete Model
           </button>
         )}
       </div>
-
-
     </>
   );
 }

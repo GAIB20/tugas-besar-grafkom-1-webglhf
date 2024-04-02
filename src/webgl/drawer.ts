@@ -155,7 +155,7 @@ export class Drawer {
 
     return this.selectedModel.getVertices().findIndex((vertice) => {
       console.log("VERTICE", vertice, this.selectedVertice)
-      console.log("WITHIN TOLERANCE", vertice.withinTolerance(this.selectedVertice));
+      console.log("WITHIN TOLERANCE", vertice.withinTolerance(this.selectedVertice!));
       // @ts-ignore
       return vertice.withinTolerance(this.selectedVertice)
     }

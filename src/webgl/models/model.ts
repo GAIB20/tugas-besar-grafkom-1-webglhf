@@ -19,8 +19,9 @@ export abstract class Model {
 
   protected rotateAngleInRadians = 0;
 
-  protected readonly center: Point = new Point(0, 0);
+  protected shearFactor = { x: 0, y: 0 };
 
+  protected readonly center: Point = new Point(0, 0);
   abstract getType(): string;
 
   abstract setVertices(object: any, object2: any): void;
@@ -45,7 +46,7 @@ export abstract class Model {
 
   abstract clone(): Model;
 
-  abstract movePoint(verticeIdx: number, newPosition: Point) : void;
+  abstract movePoint(verticeIdx: number, newPosition: Point): void;
 
   getCenter(): Point {
     return this.center;
@@ -75,11 +76,11 @@ export abstract class Model {
       angleInRadians: number;
       scale: number[];
     } = {
-        color: new Color(0, 0, 0, 1),
-        translation: [0, 0],
-        angleInRadians: 0,
-        scale: [1, 1],
-      }
+      color: new Color(0, 0, 0, 1),
+      translation: [0, 0],
+      angleInRadians: 0,
+      scale: [1, 1],
+    }
   ) {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
 
@@ -139,29 +140,38 @@ export abstract class Model {
     );
 
     // Compute the matrices
-    var projectionMatrix = TransformationMatrix3.projection(
+    let center = this.getCenter();
+    let projectionMatrix = TransformationMatrix3.projection(
       gl.canvas.width,
       gl.canvas.height
     );
-    var translationMatrix = TransformationMatrix3.translation(
+    let translationMatrix = TransformationMatrix3.translation(
       options.translation[0],
       options.translation[1]
     );
-    var rotationMatrix = TransformationMatrix3.rotation(options.angleInRadians);
-    var scaleMatrix = TransformationMatrix3.scaling(
+    let rotationMatrix = TransformationMatrix3.rotation(options.angleInRadians);
+    let scaleMatrix = TransformationMatrix3.scaling(
       options.scale[0],
       options.scale[1]
     );
+    // let shearMatrix = TransformationMatrix3.shear(
+    //   this.shearFactor.x,
+    //   this.shearFactor.y
+    // );
 
     // p' = Tp
-    var matrix = scaleMatrix
-      .multiply(rotationMatrix)
+    let matrix = scaleMatrix.multiply(rotationMatrix);
+
+    matrix = TransformationMatrix3.translation(-center.x, -center.y)
+      .multiply(
+        matrix.multiply(TransformationMatrix3.translation(center.x, center.y))
+      )
       .multiply(translationMatrix)
       .multiply(projectionMatrix)
-      .flatten();
+      .transpose();
 
     // Set the matrix.
-    gl.uniformMatrix3fv(attributes.matrixLocation, false, matrix);
+    gl.uniformMatrix3fv(attributes.matrixLocation, false, matrix.flatten());
 
     // Render the geometry.
     gl.drawArrays(this.drawMode(gl), 0, this.count());
@@ -216,30 +226,39 @@ export abstract class Model {
   }
 
   scale(sx: number, sy: number) {
-    const transformationMatrix = TransformationMatrix3.scaling(
-      1,
-      2
+    const transformationMatrix = TransformationMatrix3.scalingPreserveCenter(
+      sx,
+      sy,
+      this.getCenter()
     ).transpose();
 
-    const scaledVertice = this.getVertices()[0];
+    this.getVertices().forEach((vertice, index) => {
+      const newVertice = transformationMatrix.multiplyPoint(vertice);
+      newVertice.color = vertice.color;
 
-    const newVertice = transformationMatrix.multiplyPoint(scaledVertice);
-    newVertice.color = scaledVertice.color;
-    this.setVerticeByIndex(newVertice, 0);
-
-
-    // this.getVertices().forEach((vertice, index) => {
-    //   const newVertice = transformationMatrix.multiplyPoint(vertice);
-    //   newVertice.color = vertice.color;
-    //   console.log("NEW SCALE VERTICE" + newVertice + "INDEX" + index + "VERT")
-
-    //   this.setVerticeByIndex(newVertice, index);
-    // });
+      this.setVerticeByIndex(newVertice, index);
+    });
   }
 
   serialize() {
     const json = JSON.parse(JSON.stringify(this));
     json["type"] = this.getType();
     return json;
+  }
+
+  shear(shx: number, shy: number) {
+    this.shearFactor = { x: shx, y: shy };
+    const transformationMatrix = TransformationMatrix3.shearPreserveCenter(
+      shx,
+      shy,
+      this.getCenter()
+    ).transpose();
+
+    this.getVertices().forEach((vertice, index) => {
+      const newVertice = transformationMatrix.multiplyPoint(vertice);
+      newVertice.color = vertice.color;
+
+      this.setVerticeByIndex(newVertice, index);
+    });
   }
 }

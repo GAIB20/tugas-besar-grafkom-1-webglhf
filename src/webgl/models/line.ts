@@ -10,7 +10,13 @@ export class Line extends Model {
 
   private width: number = 0;
 
-  constructor(startPoint: Point, endPoint: Point) {
+  constructor(
+    startPoint: Point,
+    endPoint: Point,
+    private observers?: {
+      onWidthChange: Function;
+    }
+  ) {
     super();
 
     this.setVertices(startPoint, endPoint);
@@ -54,6 +60,7 @@ export class Line extends Model {
 
   private computeWidth(): void {
     this.width = this.vertices[0].euclideanDistanceTo(this.vertices[1]);
+    this.observers?.onWidthChange(this.width);
   }
 
   setWidth(width: number): void {
@@ -62,19 +69,27 @@ export class Line extends Model {
     }
     console.log("CHANGING WIDTH");
     // Calculate the original length between the points
-    const originalLength = this.vertices[1].euclideanDistanceTo(this.vertices[0]);
+    const originalLength = this.vertices[1].euclideanDistanceTo(
+      this.vertices[0]
+    );
 
     // Calculate the scaling factor to maintain the original length
     const scaleFactor = width / originalLength;
 
     // Calculate new coordinates for the second point
-    const newX = this.vertices[0].x + (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
-    const newY = this.vertices[0].y + (this.vertices[1].y - this.vertices[0].y) * scaleFactor;
+    const newX =
+      this.vertices[0].x +
+      (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
+    const newY =
+      this.vertices[0].y +
+      (this.vertices[1].y - this.vertices[0].y) * scaleFactor;
 
     // Update the second point with new coordinates
     this.vertices[1].x = newX;
     this.vertices[1].y = newY;
-    this.width = this.vertices[1].euclideanDistanceTo(this.vertices[0]);
+
+    this.computeWidth();
+    this.computeCenter();
   }
 
   getVertices(): Point[] {
@@ -83,6 +98,7 @@ export class Line extends Model {
 
   protected setVerticeByIndex(vertice: Point, index: number): void {
     this.vertices[index] = vertice;
+    this.computeWidth();
   }
 
   setVertices(startPoint: Point, endPoint: Point): void {
@@ -132,16 +148,35 @@ export class Line extends Model {
   }
 
   static fromJSON(json: any): Line {
-    const line = new Line(new Point(json.vertices[0].x, json.vertices[0].y, new Color(json.vertices[0].color.r, json.vertices[0].color.g, json.vertices[0].color.b, json.vertices[0].color.a)),
-      new Point(json.vertices[1].x, json.vertices[1].y, new Color(json.vertices[1].color.r, json.vertices[1].color.g, json.vertices[1].color.b, json.vertices[1].color.a)));
+    const line = new Line(
+      new Point(
+        json.vertices[0].x,
+        json.vertices[0].y,
+        new Color(
+          json.vertices[0].color.r,
+          json.vertices[0].color.g,
+          json.vertices[0].color.b,
+          json.vertices[0].color.a
+        )
+      ),
+      new Point(
+        json.vertices[1].x,
+        json.vertices[1].y,
+        new Color(
+          json.vertices[1].color.r,
+          json.vertices[1].color.g,
+          json.vertices[1].color.b,
+          json.vertices[1].color.a
+        )
+      )
+    );
 
-    line.width = json.width;
     return line;
   }
 
   movePoint(verticeIdx: number, newPosition: Point): void {
-    console.log(newPosition.color)
-    console.log("VERTICE INDEX: ", verticeIdx)
+    console.log(newPosition.color);
+    console.log("VERTICE INDEX: ", verticeIdx);
     // console.log(this.vertices[verticeIdx])
     newPosition.color = this.vertices[verticeIdx].color;
     this.vertices[verticeIdx] = newPosition;
@@ -149,5 +184,3 @@ export class Line extends Model {
     this.computeCenter();
   }
 }
-
-

@@ -13,7 +13,14 @@ export class Rectangle extends Model {
   private width: number = 0;
   private height: number = 0;
 
-  constructor(startPoint: Point, endPoint: Point) {
+  constructor(
+    startPoint: Point,
+    endPoint: Point,
+    private observers?: {
+      onWidthChange: Function;
+      onHeightChange: Function;
+    }
+  ) {
     super();
     this.computeVertices(startPoint, endPoint);
   }
@@ -33,8 +40,8 @@ export class Rectangle extends Model {
 
     rect.rotateAngleInRadians = json.rotateAngleInRadians;
     rect.computeCenter();
-    rect.width = json.width;
-    rect.height = json.height;
+    // rect.width = json.width;
+    // rect.height = json.height;
 
     return rect;
   }
@@ -42,6 +49,9 @@ export class Rectangle extends Model {
   private computeDimensions() {
     this.width = this.vertices[0].euclideanDistanceTo(this.vertices[1]);
     this.height = this.vertices[1].euclideanDistanceTo(this.vertices[2]);
+
+    this.observers?.onWidthChange(this.width);
+    this.observers?.onHeightChange(this.height);
   }
 
   private computeVertices(startPoint: Point, endPoint: Point) {
@@ -73,6 +83,8 @@ export class Rectangle extends Model {
         : startPoint.y + this.height;
 
     this.computeCenter();
+    this.observers?.onWidthChange(this.width);
+    this.observers?.onHeightChange(this.height);
   }
 
   protected computeCenter(): void {
@@ -100,6 +112,7 @@ export class Rectangle extends Model {
 
   protected setVerticeByIndex(vertice: Point, index: number) {
     this.vertices[index] = vertice;
+    this.computeDimensions();
   }
 
   getWidth(): number {
@@ -111,42 +124,24 @@ export class Rectangle extends Model {
   }
 
   setWidth(width: number): void {
-    // Calculate the original width of the rectangle
-    const originalWidth = this.vertices[1].x - this.vertices[0].x;
+    const sx = width / this.width;
 
-    // Calculate the scaling factor based on the original width and the new width
-    const scaleFactor = width / originalWidth;
+    this.scale(sx, 1);
 
-    // Calculate the new coordinates for the second and third points
-    const newX = this.vertices[0].x + (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
-
-    // Update the coordinates of the second point
-    this.vertices[1].x = newX;
-    this.vertices[2].x = newX;
     this.computeDimensions();
+    this.computeCenter();
   }
 
   setHeight(height: number): void {
-    // Calculate the original height of the rectangle
-    const originalHeight = this.vertices[2].y - this.vertices[0].y;
+    const sy = height / this.height;
 
-    // Calculate the scaling factor based on the original height and the new height
-    const scaleFactor = height / originalHeight;
-
-    // Calculate the new coordinates for the third and fourth points
-    const newY = this.vertices[0].y + (this.vertices[2].y - this.vertices[0].y) * scaleFactor;
-
-    // Update the coordinates of the third point
-    this.vertices[2].y = newY;
-    this.vertices[3].y = newY;
+    this.scale(1, sy);
     this.computeDimensions();
   }
-
 
   // setWidth(size: number) {
   //   throw new Error("Not implemented");
   // }
-
 
   // setHeight(size: number) {
   //   throw new Error("Not implemented");
@@ -259,7 +254,6 @@ export class Rectangle extends Model {
 
     newPosition.color = this.vertices[verticeIdx].color;
 
-
     // Preserve diagonal aspect ratio
     let opposingDiag = (verticeIdx + 2) % 4;
 
@@ -270,7 +264,7 @@ export class Rectangle extends Model {
     const xShift = newPosition.x - this.vertices[verticeIdx].x;
     // console.log("xShift", xShift)
 
-    newPosition.x = newPosition.x
+    newPosition.x = newPosition.x;
     newPosition.y = this.vertices[verticeIdx].y + xShift * diagonalYXRatio;
 
     this.vertices[verticeIdx] = newPosition;
@@ -294,7 +288,6 @@ export class Rectangle extends Model {
 
       // nextVertice Y has to be equal with current vertice Y
       nextVertice.y = newPosition.y;
-
     }
     this.rotate(origRotate);
     this.computeDimensions();
