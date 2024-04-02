@@ -126,7 +126,7 @@ export class Rectangle extends Model {
   setWidth(width: number): void {
     const sx = width / this.width;
 
-    this.scale(sx, 1);
+    this.scale(sx, sx);
 
     this.computeDimensions();
     this.computeCenter();
@@ -135,7 +135,7 @@ export class Rectangle extends Model {
   setHeight(height: number): void {
     const sy = height / this.height;
 
-    this.scale(1, sy);
+    this.scale(sy, sy);
     this.computeDimensions();
   }
 
