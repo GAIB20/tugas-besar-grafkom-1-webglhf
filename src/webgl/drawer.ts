@@ -106,8 +106,8 @@ export class Drawer {
     };
   }
 
-  toggleAnimate() {
-    this.animate = !this.animate;
+  setAnimate(bool: boolean) {
+    this.animate = bool;
     console.log("Toggling animate" + this.animate)
     this.draw();
   }

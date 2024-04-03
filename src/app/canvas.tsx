@@ -565,12 +565,12 @@ export default function Canvas() {
   const handleOperatorSelect = (selectedOption: Mode) => {
     // @ts-ignore
     if (selectedOption !== "animate") {
-      drawer?.toggleAnimate();
+      drawer?.setAnimate(false);
     }
     switch (selectedOption) {
       // @ts-ignore
       case "animate":
-        drawer?.toggleAnimate();
+        drawer?.setAnimate(true);
         // @ts-ignore
         setMode("animate");
         break;
