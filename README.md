@@ -7,10 +7,12 @@
   style="display: block; margin: 0 auto; width: 100%; max-width:800; padding: 0;">
 </p>
 
+## 🏹 Minimum Requirements
+- Node.js v20 or later
 
 ## 🤖 How to Run Locally
 
-1. Clone this repository and go to src folder
+1. Clone this repository
 2. Execute `npm i` on terminal
 3. Run the development server:
 ```bash
