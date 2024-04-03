@@ -23,6 +23,7 @@ export class Drawer {
     colorLocation: number;
     matrixLocation: WebGLUniformLocation;
   } | null = null;
+  private animate = false;
 
   private selectedModel: Model | null = null;
   private selectedVertice: Point | null = null;
@@ -103,6 +104,12 @@ export class Drawer {
       colorLocation: colorLocation,
       matrixLocation: matrixLocation,
     };
+  }
+
+  toggleAnimate() {
+    this.animate = !this.animate;
+    console.log("Toggling animate" + this.animate)
+    this.draw();
   }
 
   getGl() {
@@ -188,11 +195,18 @@ export class Drawer {
       model.draw(
         this.gl as WebGL2RenderingContext,
         this.program!!,
-        this.attributes!!
+        this.attributes!!,
+        this.animate
       );
     });
 
     this.drawSelectors();
+    if (this.animate) {
+      console.log("ANIMATING");
+      setTimeout(() => {
+        requestAnimationFrame(() => this.draw());
+      }, 1000 / 10);
+    }
   }
 
   private drawSelectors() {

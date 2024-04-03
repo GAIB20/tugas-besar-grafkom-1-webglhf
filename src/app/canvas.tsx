@@ -563,7 +563,17 @@ export default function Canvas() {
   }
 
   const handleOperatorSelect = (selectedOption: Mode) => {
+    // @ts-ignore
+    if (selectedOption !== "animate") {
+      drawer?.toggleAnimate();
+    }
     switch (selectedOption) {
+      // @ts-ignore
+      case "animate":
+        drawer?.toggleAnimate();
+        // @ts-ignore
+        setMode("animate");
+        break;
       case "select":
         handleSelect();
         break;
@@ -695,6 +705,7 @@ export default function Canvas() {
           <option value="translate">Translate Mode</option>
           <option value="rotate">Rotate Mode</option>
           <option value="scale">Scale Mode</option>
+          <option value="animate">Animate!</option>
         </select>
 
         <button

@@ -16,6 +16,7 @@ export abstract class Model {
   public minY = 0;
   public maxX = 0;
   public maxY = 0;
+  public counter = 0;
 
   protected rotateAngleInRadians = 0;
 
@@ -70,6 +71,7 @@ export abstract class Model {
       colorLocation: number;
       matrixLocation: WebGLUniformLocation;
     },
+    animate = false,
     options: {
       color: Color;
       translation: number[];
@@ -80,7 +82,7 @@ export abstract class Model {
       translation: [0, 0],
       angleInRadians: 0,
       scale: [1, 1],
-    }
+      }    
   ) {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
 
@@ -149,15 +151,16 @@ export abstract class Model {
       options.translation[0],
       options.translation[1]
     );
-    let rotationMatrix = TransformationMatrix3.rotation(options.angleInRadians);
+    let angleRotation = options.angleInRadians
+    if (animate) {
+      angleRotation += this.counter;
+      this.counter += 0.05;
+    }
+    let rotationMatrix = TransformationMatrix3.rotation(angleRotation);
     let scaleMatrix = TransformationMatrix3.scaling(
       options.scale[0],
       options.scale[1]
     );
-    // let shearMatrix = TransformationMatrix3.shear(
-    //   this.shearFactor.x,
-    //   this.shearFactor.y
-    // );
 
     // p' = Tp
     let matrix = scaleMatrix.multiply(rotationMatrix);
