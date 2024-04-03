@@ -52,6 +52,7 @@ export class Rectangle extends Model {
 
     this.observers?.onWidthChange(this.width);
     this.observers?.onHeightChange(this.height);
+    this.computeCenter();
   }
 
   private computeVertices(startPoint: Point, endPoint: Point) {
@@ -124,18 +125,32 @@ export class Rectangle extends Model {
   }
 
   setWidth(width: number): void {
-    const sx = width / this.width;
+    // rotate back first
+    const origRotate = this.rotateAngleInRadians;
+    this.rotate(-this.rotateAngleInRadians);
+    const originalWidth = this.vertices[1].x - this.vertices[0].x;
 
-    this.scale(sx, sx);
+    const scaleFactor = width / originalWidth;
+    const newX = this.vertices[0].x + (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
 
+    this.vertices[1].x = newX;
+    this.vertices[2].x = newX;
+    this.rotate(origRotate);
     this.computeDimensions();
-    this.computeCenter();
   }
 
   setHeight(height: number): void {
-    const sy = height / this.height;
+    const origRotate = this.rotateAngleInRadians;
+    this.rotate(-this.rotateAngleInRadians);
+    const originalHeight = this.vertices[2].y - this.vertices[0].y;
 
-    this.scale(sy, sy);
+    const scaleFactor = height / originalHeight;
+    const newY = this.vertices[0].y + (this.vertices[2].y - this.vertices[0].y) * scaleFactor;
+
+    this.vertices[2].y = newY;
+    this.vertices[3].y = newY;
+
+    this.rotate(origRotate);
     this.computeDimensions();
   }
 
