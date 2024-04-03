@@ -1,9 +1,18 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 👾 WebGL 2D Primitives Element
 
-## Getting Started
+<p align="center" style="border-radius: 10px; box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;">
+<img
+  src="screenshots/homepage.png"
+  alt="Treasure Hunt App by Bebas"
+  style="display: block; margin: 0 auto; width: 100%; max-width:800; padding: 0;">
+</p>
 
-First, run the development server:
 
+## 🤖 How to Run Locally
+
+1. Clone this repository and go to src folder
+2. Execute `npm i` on terminal
+3. Run the development server:
 ```bash
 npm run dev
 # or
@@ -13,24 +22,25 @@ pnpm dev
 # or
 bun dev
 ```
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### ✨ How to Use
+Here are some of the functionalities of the app:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Use the dropdowns to select the drawing option and operation mode.
+- Draw shapes on the canvas by clicking and dragging.
+- Select drawn objects by clicking on them.
+- Perform operations like translate, rotate, or delete on selected objects.
+- If a point is selected, it can be moved while preserving geometry (except for polygons).
+- Change the color of selected models or points using the color picker.
+- Save and reload models from files.
+- Each selected object has its own properties like width/height that can be changed.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Made with 🫡 by WebGLHF team,
+|Nama | NIM|
+|--|--|
+|[William Nixon]("https://github.com/williamnixon20")|13521123|
+|[Nicholas Liem]("https://github.com/NicholasLiem")|13521135|
+|[Made Debby Almadea P.]("https://github.com/debbyalmadea")|13521153|
