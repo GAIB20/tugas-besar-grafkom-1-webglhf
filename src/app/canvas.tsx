@@ -13,6 +13,7 @@ import { Line } from "@/webgl/models/line";
 import { Rectangle } from "@/webgl/models/rectangle";
 import toast from "react-hot-toast";
 import { PointMover } from "@/webgl/tools/pointMover";
+// @ts-ignore
 import Modal from "react-modal";
 
 type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale";
@@ -427,6 +428,22 @@ export default function Canvas() {
     if (currentDrawingModel) {
       let model = currentDrawingModel as Model;
       model.isDrawing = false;
+    }
+
+    // if selected model, update dims
+    if (drawer?.getSelectedModel()) {
+      const selectedModel = drawer.getSelectedModel() as Model;
+      if (selectedModel.getType() === "line") {
+        const line = selectedModel as Line;
+        setWidth(Math.round(line.getWidth()));
+      } else if (selectedModel.getType() === "square") {
+        const square = selectedModel as Square;
+        setWidth(Math.round(square.getSize()));
+      } else if (selectedModel.getType() === "rectangle") {
+        const rectangle = selectedModel as Rectangle;
+        setWidth(Math.round(rectangle.getWidth()));
+        setHeight(Math.round(rectangle.getHeight()));
+      }
     }
 
     if (mode !== "draw") {

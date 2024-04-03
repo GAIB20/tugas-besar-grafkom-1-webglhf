@@ -153,10 +153,7 @@ export class Square extends Model {
   }
 
   computeDimensions() {
-    this.size = Math.max(
-      Math.abs(this.vertices[0].x - this.vertices[1].x),
-      Math.abs(this.vertices[0].y - this.vertices[3].y)
-    );
+    this.size = this.vertices[0].euclideanDistanceTo(this.vertices[1]);
 
     this.observers?.onSizeChange(this.size);
   }
