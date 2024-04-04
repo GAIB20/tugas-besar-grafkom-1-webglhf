@@ -16,8 +16,9 @@ import { PointMover } from "@/webgl/tools/pointMover";
 // @ts-ignore
 import Modal from "react-modal";
 import { Polygon } from "@/webgl/models/polygon";
+import { Union } from "@/webgl/tools/union";
 
-type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale";
+type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale" | "union";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
 
 export default function Canvas() {
@@ -81,6 +82,7 @@ export default function Canvas() {
   const [rotator, setRotator] = useState<Rotator | null>(null);
   const [scaler, setScaler] = useState<Scaler | null>(null);
   const [pointMover, setPointMover] = useState<PointMover | null>(null);
+  const [union, setUnion] = useState<Union | null>(null);
 
   // default colors
   const [colors, setColors] = useState<Color[]>([
@@ -100,6 +102,7 @@ export default function Canvas() {
     rotate: rotator,
     scale: scaler,
     pointMover: pointMover,
+    union: union,
   };
 
   function randomizeColors() {
@@ -305,7 +308,7 @@ export default function Canvas() {
       }
 
       const tool = mapModeToTool[mode];
-      if (tool) {
+      if (tool && mode !== "union") {
         tool.start(
           drawer.getSelectedModel() as Model,
           new Point(e.clientX - rect.left, e.clientY - rect.top)
@@ -314,7 +317,7 @@ export default function Canvas() {
       }
     }
 
-    if (mode == "draw" && (objectToDraw === "polygon" || drawer.getSelectedModel()?.getType() === "polygon")){
+    if (mode === "draw" && (objectToDraw === "polygon" || drawer.getSelectedModel()?.getType() === "polygon")){
       console.log("DRAWING POLYGON POINTS")
       if (drawer.getSelectedModel() === null){
         console.log("NULL")
@@ -328,6 +331,19 @@ export default function Canvas() {
         model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
       }
       drawer.draw();
+    }
+
+    if (mode === "union" && union) {
+      if (union.getBufferSize() > 1) {
+        toast.error("You have already selected two models.");
+        return;
+      }
+
+      const model = getModelAtPosition(e.clientX, e.clientY);
+      if (model) {
+        union?.addModelToUnion(model);
+        toast.success("Model added to union operation.");
+      }
     }
 
     // if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
@@ -380,6 +396,24 @@ export default function Canvas() {
     setCurrentDrawingModel(model);
     setStartPoint(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
   }
+
+  function getModelAtPosition(x: number, y: number): Model | null {
+    if (!drawer || !canvasRef.current) return null;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const point = new Point(x - rect.left, y - rect.top);
+
+    const models = drawer.getModels();
+
+    for (let i = models.length - 1; i >= 0; i--) { // Iterate backwards to start from the topmost model
+        const model = models[i];
+        if (model.isPointInside(point, 10)) {
+            return model;
+        }
+    }
+
+    return null;
+}
 
   function handleMouseMove(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
@@ -583,6 +617,12 @@ export default function Canvas() {
     if (drawer) setScaler(new Scaler(drawer));
   }
 
+  function handleUnion() {
+    setMode("union");
+    clear();
+    if (drawer) setUnion(new Union(drawer));
+  }
+
   function clear() {
     setStartPoint(null);
     setCurrentDrawingModel(null);
@@ -626,10 +666,25 @@ export default function Canvas() {
         }
         drawer?.unselect();
         break;
+      case "union":
+        handleUnion();
+        break;
       default:
         break;
     }
   };
+
+  function executeUnionOperation() {
+    if (union && union.getBufferSize() < 2) {
+      toast.error("You must select two models to unify.");
+      return;
+    }
+    
+    if (union) {
+        union.executeUnion();
+        toast.success("Union operation completed.");
+    }
+  }
 
   const renderModelOptions = () => {
     if (selectedModelType === "line" || selectedModelType === "square") {
@@ -692,6 +747,7 @@ export default function Canvas() {
               if (selectedModel) {
                 selectedModel.doConvexHull();
                 drawer?.draw();
+                toast.success("Successfully created a convex hull")
               }
             }}
           >
@@ -774,8 +830,22 @@ export default function Canvas() {
           <option value="translate">Translate Mode</option>
           <option value="rotate">Rotate Mode</option>
           <option value="scale">Scale Mode</option>
+          <option value="union">Union Mode</option>
           <option value="animate">Animate!</option>
         </select>
+
+        { (mode === "union") &&
+          (
+            <button
+              className="bg-red-500 p-2 rounded-md text-white mb-2"
+              onClick={() => {
+                executeUnionOperation();
+              }}
+            >
+              Merge/Unify Models
+            </button>
+          ) 
+        } 
 
         <button
           className="bg-blue-500 p-2 rounded-md text-white mb-2"
