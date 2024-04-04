@@ -28,6 +28,7 @@ export default function Canvas() {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [polygonPoints, setPolygonPoints] = useState<Point[]>([]);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -156,6 +157,11 @@ export default function Canvas() {
         }
       );
     }
+
+    // if (objectToDraw === "polygon") {
+    //   const point = new Point(e.clientX - rect.left, e.clientY - rect.top);
+    //   setPolygonPoints(prev => [...prev, point]);
+    // }
 
     return null;
   }
@@ -307,6 +313,13 @@ export default function Canvas() {
         );
         return;
       }
+    }
+
+    if (mode == "draw" && objectToDraw === "polygon") {
+      console.log("DRAWING POLYGON POINTS")
+      const newPoint = new Point(e.clientX - rect.left, e.clientY - rect.top);
+      setPolygonPoints(prevPoints => [...prevPoints, newPoint]);
+      return;
     }
 
     // if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
@@ -481,6 +494,17 @@ export default function Canvas() {
 
     setCurrentDrawingModel(null);
     setStartPoint(null);
+  }
+
+  function handleDoubleClick(e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>) {
+    if (objectToDraw === "polygon" && polygonPoints.length >= 3) {
+      console.log("DRAWING POLYGON");
+      const polygon = new Polygon();
+      polygon.setVertices(polygonPoints);
+      drawer?.addModel(polygon);
+      setPolygonPoints([]);
+      drawer?.draw();
+    }
   }
 
   function notifyChange(width?: number, height?: number) {
@@ -667,6 +691,7 @@ export default function Canvas() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onDoubleClick={handleDoubleClick}
       />
 
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
@@ -688,7 +713,7 @@ export default function Canvas() {
           <option value="line">Draw Line</option>
           <option value="rectangle">Draw Rectangle</option>
           <option value="square">Draw Square</option>
-          <option value="polygon">Draw Polygon [Work in Progress]</option>
+          <option value="polygon">Draw Polygon</option>
         </select>
         <label
           htmlFor="mode"
