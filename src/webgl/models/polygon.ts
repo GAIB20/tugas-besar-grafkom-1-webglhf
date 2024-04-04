@@ -20,9 +20,9 @@ export class Polygon extends Model {
     static fromJSON(json: any): Polygon {
         const polygon = new Polygon();
         const vertices = json.vertices;
-        // vertices.forEach((vertice: string) => {
-        //     polygon.addVertice(Point.fromJSON(vertice));
-        // });
+        vertices.forEach((vertice: Point) => {
+            polygon.addVertice(Point.fromJSON(vertice));
+        });
         return polygon;
     }
 
