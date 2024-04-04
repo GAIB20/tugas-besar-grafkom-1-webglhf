@@ -323,12 +323,16 @@ export default function Canvas() {
         console.log("NULL")
         const model = new Polygon();
         model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        // Auto Convex Hull, uncomment this part to enable auto convex hull
+        // model.doConvexHull();
         model.isDrawing = true;
         drawer.addModel(model);
         drawer.select(model);
       } else {
         const model = drawer.getSelectedModel() as Polygon;
         model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        // Auto Convex Hull, uncomment this part to enable auto convex hull
+        // model.doConvexHull();
       }
       drawer.draw();
     }
