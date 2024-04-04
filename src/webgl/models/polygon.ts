@@ -132,8 +132,13 @@ export class Polygon extends Model {
         );
     }
 
-    deleteVertice(verticeIdx: number) {
+    deleteVerticeIdx(verticeIdx: number) {
         this.vertices.splice(verticeIdx, 1);
+        this.computeCenter();
+    }
+
+    deleteVertice(vertice: Point) {
+        this.vertices = this.vertices.filter((v) => !v.withinTolerance(vertice, 0.1));
         this.computeCenter();
     }
 

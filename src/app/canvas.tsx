@@ -28,7 +28,6 @@ export default function Canvas() {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [polygonPoints, setPolygonPoints] = useState<Point[]>([]);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -315,11 +314,20 @@ export default function Canvas() {
       }
     }
 
-    if (mode == "draw" && objectToDraw === "polygon") {
+    if (mode == "draw" && (objectToDraw === "polygon" || drawer.getSelectedModel()?.getType() === "polygon")){
       console.log("DRAWING POLYGON POINTS")
-      const newPoint = new Point(e.clientX - rect.left, e.clientY - rect.top);
-      setPolygonPoints(prevPoints => [...prevPoints, newPoint]);
-      return;
+      if (drawer.getSelectedModel() === null){
+        console.log("NULL")
+        const model = new Polygon();
+        model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        model.isDrawing = true;
+        drawer.addModel(model);
+        drawer.select(model);
+      } else {
+        const model = drawer.getSelectedModel() as Polygon;
+        model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+      }
+      drawer.draw();
     }
 
     // if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
@@ -497,14 +505,7 @@ export default function Canvas() {
   }
 
   function handleDoubleClick(e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>) {
-    if (objectToDraw === "polygon" && polygonPoints.length >= 3) {
-      console.log("DRAWING POLYGON");
-      const polygon = new Polygon();
-      polygon.setVertices(polygonPoints);
-      drawer?.addModel(polygon);
-      setPolygonPoints([]);
-      drawer?.draw();
-    }
+    drawer?.unselect();
   }
 
   function notifyChange(width?: number, height?: number) {
@@ -597,6 +598,7 @@ export default function Canvas() {
     switch (selectedOption) {
       // @ts-ignore
       case "animate":
+        drawer?.unselect();
         drawer?.setAnimate(true);
         // @ts-ignore
         setMode("animate");
@@ -619,6 +621,9 @@ export default function Canvas() {
       case "draw":
         setMode("draw");
         clear();
+        if (drawer?.getSelectedModel()?.getType() === "polygon") {
+          break;
+        }
         drawer?.unselect();
         break;
       default:
@@ -626,7 +631,7 @@ export default function Canvas() {
     }
   };
 
-  const renderDimensionInputs = () => {
+  const renderModelOptions = () => {
     if (selectedModelType === "line" || selectedModelType === "square") {
       return (
         <div>
@@ -677,6 +682,27 @@ export default function Canvas() {
           />
         </div>
       );
+    } else if (selectedModelType === "polygon") {
+      return (
+        <button
+          className="bg-blue-500 p-2 rounded-md text-white mt-2"
+          onClick={() => {
+            if (!drawer?.getSelectedVertice()) {
+              toast.error("Please select a vertice to delete");
+              return;
+            }
+            const selectedModel = drawer?.getSelectedModel() as Polygon;
+            const selectedVertice = drawer?.getSelectedVertice();
+            if (selectedModel && selectedVertice) {
+              selectedModel.deleteVertice(selectedVertice);
+              drawer?.draw();
+              toast.success("Point deleted successfully!");
+            }
+          }}
+        >
+          Delete Point
+        </button>
+      );
     } else {
       return null;
     }
@@ -705,6 +731,7 @@ export default function Canvas() {
           id="objectToDraw"
           value={objectToDraw}
           onChange={(event) => {
+            drawer?.unselect();
             setObjectToDraw(event.target.value as ModelType);
             setMode("draw");
           }}
@@ -832,7 +859,7 @@ export default function Canvas() {
         <label className="text-base font-semibold text-white mb-2">
           Selected model options:
         </label>
-        {renderDimensionInputs()}
+        {renderModelOptions()}
         {drawer?.getSelectedModel() && (
           <button
             className="bg-blue-500 p-2 rounded-md text-white mt-2"
