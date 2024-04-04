@@ -917,7 +917,7 @@ export default function Canvas() {
             },
           }}
         >
-          <h2 className="text-xl font-semibold mb-4">Tubes Grafkom 2 - GLHF</h2>
+          <h2 className="text-xl font-semibold mb-4">Tubes Grafkom 1 - GLHF</h2>
           <p className="mb-2">
             Here are some of the functionalities of the app:
           </p>
