@@ -162,4 +162,8 @@ export class Polygon extends Model {
         this.computeCenter();
     }
 
+    doConvexHull() {
+        console.log("IMPLEMENT THIS")
+    }
+
 }

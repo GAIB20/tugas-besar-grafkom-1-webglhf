@@ -684,24 +684,38 @@ export default function Canvas() {
       );
     } else if (selectedModelType === "polygon") {
       return (
-        <button
-          className="bg-blue-500 p-2 rounded-md text-white mt-2"
-          onClick={() => {
-            if (!drawer?.getSelectedVertice()) {
-              toast.error("Please select a vertice to delete");
-              return;
-            }
-            const selectedModel = drawer?.getSelectedModel() as Polygon;
-            const selectedVertice = drawer?.getSelectedVertice();
-            if (selectedModel && selectedVertice) {
-              selectedModel.deleteVertice(selectedVertice);
-              drawer?.draw();
-              toast.success("Point deleted successfully!");
-            }
-          }}
-        >
-          Delete Point
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <button
+            className="bg-blue-500 p-2 rounded-md text-white mt-2"
+            onClick={() => {
+              const selectedModel = drawer?.getSelectedModel() as Polygon;
+              if (selectedModel) {
+                selectedModel.doConvexHull();
+                drawer?.draw();
+              }
+            }}
+          >
+            Convex Hull
+          </button>
+          <button
+            className="bg-blue-500 p-2 rounded-md text-white mt-2"
+            onClick={() => {
+              if (!drawer?.getSelectedVertice()) {
+                toast.error("Please select a vertice to delete");
+                return;
+              }
+              const selectedModel = drawer?.getSelectedModel() as Polygon;
+              const selectedVertice = drawer?.getSelectedVertice();
+              if (selectedModel && selectedVertice) {
+                selectedModel.deleteVertice(selectedVertice);
+                drawer?.draw();
+                toast.success("Point deleted successfully!");
+              }
+            }}
+          >
+            Delete Point
+          </button>
+        </div>
       );
     } else {
       return null;
