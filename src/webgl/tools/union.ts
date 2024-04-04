@@ -1,10 +1,10 @@
 import { Model } from "../models/model";
 import { Polygon } from "../models/polygon";
+import { Point } from "../models/primitives/point";
 import { Tool } from "./tool";
 
 export class Union extends Tool {
     private modelsToUnion: Model[] = [];
-
     start() {
         return;
     }
@@ -30,22 +30,14 @@ export class Union extends Tool {
     }
 
     executeUnion() {
-        if (this.modelsToUnion.length !== 2) {
-            return;
-        }
+        const vertices: Point[] = [];
+        this.modelsToUnion.forEach(model => {
+            vertices.push(...model.getVertices());
+        });
 
-        const [firstModel, secondModel] = this.modelsToUnion;
-        const firstModelVertices = firstModel.getVertices();
-        const secondModelVertices = secondModel.getVertices();
-
-        const firstPolygon = new Polygon();
-        firstPolygon.setVertices(firstModelVertices);
-
-        const secondPolygon = new Polygon();
-        secondPolygon.setVertices(secondModelVertices);
-
-        const newPolygon = firstPolygon.clone() as Polygon;
-        newPolygon.doUnion(secondPolygon);
+        const newPolygon = new Polygon();
+        newPolygon.setVertices(vertices);
+        newPolygon.doConvexHull();
         this.drawer.addModel(newPolygon);
 
         this.drawer.draw();

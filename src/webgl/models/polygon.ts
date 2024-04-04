@@ -188,10 +188,6 @@ export class Polygon extends Model {
         }
     
         this.vertices = stack;
-    }  
-    
-    doUnion(otherPolygon: Polygon) {
-        console.log("IMPLEMENT THIS");
     }    
 
     sortByAngle(points: Point[], minYPoint: Point): Point[] {
