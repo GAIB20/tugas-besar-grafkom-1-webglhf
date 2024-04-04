@@ -29,6 +29,7 @@ export default function Canvas() {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [enableAutoConvexHull, setEnableAutoConvexHull] = useState<Boolean>(true);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -159,11 +160,6 @@ export default function Canvas() {
         }
       );
     }
-
-    // if (objectToDraw === "polygon") {
-    //   const point = new Point(e.clientX - rect.left, e.clientY - rect.top);
-    //   setPolygonPoints(prev => [...prev, point]);
-    // }
 
     return null;
   }
@@ -323,16 +319,14 @@ export default function Canvas() {
         console.log("NULL")
         const model = new Polygon();
         model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
-        // Auto Convex Hull, uncomment this part to enable auto convex hull
-        // model.doConvexHull();
+        if (enableAutoConvexHull) model.doConvexHull();
         model.isDrawing = true;
         drawer.addModel(model);
         drawer.select(model);
       } else {
         const model = drawer.getSelectedModel() as Polygon;
         model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
-        // Auto Convex Hull, uncomment this part to enable auto convex hull
-        // model.doConvexHull();
+        if (enableAutoConvexHull) model.doConvexHull();
       }
       drawer.draw();
     }
@@ -816,6 +810,21 @@ export default function Canvas() {
           <option value="square">Draw Square</option>
           <option value="polygon">Draw Polygon</option>
         </select>
+
+        { (objectToDraw === "polygon") &&
+          (
+            <button
+              className={`${enableAutoConvexHull ? 'bg-red-500' : 'bg-green-500'} p-2 rounded-md text-white mb-2`}
+              onClick={ (_) => {
+                  setEnableAutoConvexHull(!enableAutoConvexHull)
+                }
+              }
+              >
+                {enableAutoConvexHull ? 'Disable Auto Convex Hull' : 'Enable Auto Convex Hull'}
+            </button>
+          )
+        }
+
         <label
           htmlFor="mode"
           className="text-base font-semibold text-white mb-2"
