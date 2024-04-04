@@ -5,7 +5,11 @@ export class Point {
     public x: number = 0,
     public y: number = 0,
     public color: Color = new Color(0, 0, 0, 1)
-  ) {}
+  ) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+  }
 
   toAffineTransform(): number[] {
     return [this.x, this.y, 1];

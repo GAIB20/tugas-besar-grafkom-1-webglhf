@@ -186,7 +186,7 @@ export abstract class Model {
 
   getVerticeByPosition(
     position: Point,
-    tolerance: number = 20
+    tolerance: number = 10
   ): Point | undefined {
     return this.getVertices().find((vertice) =>
       vertice.withinTolerance(position, tolerance)

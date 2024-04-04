@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { PointMover } from "@/webgl/tools/pointMover";
 // @ts-ignore
 import Modal from "react-modal";
+import { Polygon } from "@/webgl/models/polygon";
 
 type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
@@ -180,6 +181,8 @@ export default function Canvas() {
       return Rectangle.fromJSON(parsedJSON);
     } else if (parsedJSON.type === "square") {
       return Square.fromJSON(parsedJSON);
+    } else if (parsedJSON.type === "polygon") {
+      return Polygon.fromJSON(parsedJSON);
     }
   }
 
