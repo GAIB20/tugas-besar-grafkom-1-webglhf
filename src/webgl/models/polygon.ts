@@ -163,7 +163,49 @@ export class Polygon extends Model {
     }
 
     doConvexHull() {
-        console.log("IMPLEMENT THIS")
+        if (this.vertices.length < 3) return;
+    
+        const minYPoint = this.getMinYVertex(this.vertices);    
+        const sortedPoints = this.sortByAngle(this.vertices, minYPoint);
+        const stack: Point[] = [];
+    
+        stack.push(sortedPoints[0], sortedPoints[1]);
+    
+        for (let i = 2; i < sortedPoints.length; i++) {
+            while (stack.length >= 2) {
+                const top = stack.pop();
+                const nextToTop = stack[stack.length - 1];
+    
+                if (top && nextToTop && this.ccw(nextToTop, top, sortedPoints[i]) !== 1) {
+                } else {
+                    if (top) {
+                        stack.push(top);
+                    }
+                    break;
+                }
+            }
+            stack.push(sortedPoints[i]);
+        }
+    
+        this.vertices = stack;
+    }    
+
+    sortByAngle(points: Point[], minYPoint: Point): Point[] {
+        return points.sort((a, b) => this.angle(minYPoint, a) - this.angle(minYPoint, b));
     }
 
+    getMinYVertex(vertices: Point[]): Point {
+        return vertices.reduce((min, p) => p.y < min.y ? p : min, vertices[0]);
+    }
+    
+    angle(o: Point, a: Point): number {
+        return Math.atan2(a.y - o.y, a.x - o.x);
+    }
+
+    ccw(a: Point, b: Point, c: Point) {
+        const area = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+        if (area < 0) return -1; // cw
+        if (area > 0) return 1; // ccw
+        return 0; // colinear
+    }    
 }
