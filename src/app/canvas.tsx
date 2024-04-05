@@ -18,7 +18,14 @@ import Modal from "react-modal";
 import { Polygon } from "@/webgl/models/polygon";
 import { Union } from "@/webgl/tools/union";
 
-type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale" | "union";
+type Mode =
+  | "draw"
+  | "select"
+  | "translate"
+  | "rotate"
+  | "pointMover"
+  | "scale"
+  | "union";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
 
 export default function Canvas() {
@@ -29,7 +36,8 @@ export default function Canvas() {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [enableAutoConvexHull, setEnableAutoConvexHull] = useState<Boolean>(true);
+  const [enableAutoConvexHull, setEnableAutoConvexHull] =
+    useState<Boolean>(true);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -242,25 +250,6 @@ export default function Canvas() {
     reader.readAsText(file); // Read file as text
   }
 
-  // function computeDimension() {
-  //   const selectedModel = drawer?.getSelectedModel();
-
-  //   if (selectedModel?.getType() === "line") {
-  //     const line = selectedModel as Line;
-  //     setWidth(Math.round(line.getWidth()));
-  //   }
-  //   if (selectedModel?.getType() === "square") {
-  //     const square = selectedModel as Square;
-  //     setWidth(square.getSize());
-  //   }
-
-  //   if (selectedModel?.getType() === "rectangle") {
-  //     const rectangle = selectedModel as Rectangle;
-  //     setHeight(rectangle.getHeight());
-  //     setWidth(rectangle.getWidth());
-  //   }
-  // }
-
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
@@ -313,19 +302,27 @@ export default function Canvas() {
       }
     }
 
-    if (mode === "draw" && (objectToDraw === "polygon" || drawer.getSelectedModel()?.getType() === "polygon")){
-      console.log("DRAWING POLYGON POINTS")
-      if (drawer.getSelectedModel() === null){
-        console.log("NULL")
+    if (
+      mode === "draw" &&
+      (objectToDraw === "polygon" ||
+        drawer.getSelectedModel()?.getType() === "polygon")
+    ) {
+      console.log("DRAWING POLYGON POINTS");
+      if (drawer.getSelectedModel() === null) {
+        console.log("NULL");
         const model = new Polygon();
-        model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        model.addVertice(
+          new Point(e.clientX - rect.left, e.clientY - rect.top)
+        );
         if (enableAutoConvexHull) model.doConvexHull();
         model.isDrawing = true;
         drawer.addModel(model);
         drawer.select(model);
       } else {
         const model = drawer.getSelectedModel() as Polygon;
-        model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        model.addVertice(
+          new Point(e.clientX - rect.left, e.clientY - rect.top)
+        );
         if (enableAutoConvexHull) model.doConvexHull();
       }
       drawer.draw();
@@ -343,38 +340,6 @@ export default function Canvas() {
         toast.success("Model added to union operation.");
       }
     }
-
-    // if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
-    //   pointMover.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    // }
-
-    // if (mode === "translate" && translator && drawer.getSelectedModel()) {
-    //   translator.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    //   return;
-    // }
-
-    // if (mode === "rotate" && rotator && drawer.getSelectedModel()) {
-    //   rotator.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    //   return;
-    // }
-
-    // if (mode === "scale" && scaler && drawer.getSelectedModel()) {
-    //   console.log("MODE SCALER");
-    //   scaler.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    //   return;
-    // }
 
     const model = getModel(e, rect);
 
@@ -403,15 +368,16 @@ export default function Canvas() {
 
     const models = drawer.getModels();
 
-    for (let i = models.length - 1; i >= 0; i--) { // Iterate backwards to start from the topmost model
-        const model = models[i];
-        if (model.isPointInside(point, 10)) {
-            return model;
-        }
+    for (let i = models.length - 1; i >= 0; i--) {
+      // Iterate backwards to start from the topmost model
+      const model = models[i];
+      if (model.isPointInside(point, 10)) {
+        return model;
+      }
     }
 
     return null;
-}
+  }
 
   function handleMouseMove(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
@@ -436,27 +402,6 @@ export default function Canvas() {
       }
     }
 
-    // if (mode === "translate" && translator) {
-    //   translator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
-    // if (mode === "rotate" && rotator) {
-    //   rotator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
-    // if (mode === "scale" && scaler) {
-    //   console.log("MOVING SCALER");
-    //   scaler.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
-    // if (mode === "pointMover" && pointMover) {
-    //   pointMover.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
     if (!startPoint || !currentDrawingModel) {
       return;
     }
@@ -473,7 +418,6 @@ export default function Canvas() {
     });
 
     drawer.draw();
-    // computeDimension();
   }
 
   function handleMouseUp(
@@ -507,36 +451,16 @@ export default function Canvas() {
       const tool = mapModeToTool[mode];
       if (tool) {
         tool.end();
-
-        // if (mode === "pointMover") {
-        //   computeDimension();
-        // }
       }
     }
-
-    // if (mode === "translate" && translator) {
-    //   translator.end();
-    // }
-
-    // if (mode === "rotate" && rotator) {
-    //   rotator.end();
-    // }
-
-    // if (mode === "scale" && scaler) {
-    //   console.log("ENDING SCALER");
-    //   scaler.end();
-    // }
-
-    // if (mode === "pointMover" && pointMover) {
-    //   pointMover.end();
-    //   computeDimension();
-    // }
 
     setCurrentDrawingModel(null);
     setStartPoint(null);
   }
 
-  function handleDoubleClick(e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>) {
+  function handleDoubleClick(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
     drawer?.unselect();
   }
 
@@ -586,12 +510,6 @@ export default function Canvas() {
     clear();
     if (drawer) setTranslator(new Translator(drawer));
   }
-
-  // function handleScale() {
-  //   setMode("scale");
-  //   clear();
-  //   if (drawer) setScaler(new Scaler(drawer));
-  // }
 
   function handlePointMover() {
     if (drawer?.getSelectedVertice() === null) {
@@ -677,10 +595,10 @@ export default function Canvas() {
       toast.error("You must select two models to unify.");
       return;
     }
-    
+
     if (union) {
-        union.executeUnion();
-        toast.success("Union operation completed.");
+      union.executeUnion();
+      toast.success("Union operation completed.");
     }
   }
 
@@ -737,7 +655,7 @@ export default function Canvas() {
       );
     } else if (selectedModelType === "polygon") {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           <button
             className="bg-blue-500 p-2 rounded-md text-white mt-2"
             onClick={() => {
@@ -745,7 +663,7 @@ export default function Canvas() {
               if (selectedModel) {
                 selectedModel.doConvexHull();
                 drawer?.draw();
-                toast.success("Successfully created a convex hull")
+                toast.success("Successfully created a convex hull");
               }
             }}
           >
@@ -778,15 +696,17 @@ export default function Canvas() {
 
   return (
     <>
-      <canvas
-        ref={canvasRef}
-        id="webgl-canvas"
-        className="w-full h-full bg-gray-200"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onDoubleClick={handleDoubleClick}
-      />
+      <div className="w-full h-full max-h-screen overflow-auto">
+        <canvas
+          ref={canvasRef}
+          id="webgl-canvas"
+          className="w-[1920px] h-[1080px] bg-gray-200"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onDoubleClick={handleDoubleClick}
+        />
+      </div>
 
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
         <label
@@ -811,19 +731,20 @@ export default function Canvas() {
           <option value="polygon">Draw Polygon</option>
         </select>
 
-        { (objectToDraw === "polygon") &&
-          (
-            <button
-              className={`${enableAutoConvexHull ? 'bg-red-500' : 'bg-green-500'} p-2 rounded-md text-white mb-2`}
-              onClick={ (_) => {
-                  setEnableAutoConvexHull(!enableAutoConvexHull)
-                }
-              }
-              >
-                {enableAutoConvexHull ? 'Disable Auto Convex Hull' : 'Enable Auto Convex Hull'}
-            </button>
-          )
-        }
+        {objectToDraw === "polygon" && (
+          <button
+            className={`${
+              enableAutoConvexHull ? "bg-red-500" : "bg-green-500"
+            } p-2 rounded-md text-white mb-2`}
+            onClick={(_) => {
+              setEnableAutoConvexHull(!enableAutoConvexHull);
+            }}
+          >
+            {enableAutoConvexHull
+              ? "Disable Auto Convex Hull"
+              : "Enable Auto Convex Hull"}
+          </button>
+        )}
 
         <label
           htmlFor="mode"
@@ -847,18 +768,16 @@ export default function Canvas() {
           <option value="animate">Animate!</option>
         </select>
 
-        { (mode === "union") &&
-          (
-            <button
-              className="bg-red-500 p-2 rounded-md text-white mb-2"
-              onClick={() => {
-                executeUnionOperation();
-              }}
-            >
-              Merge/Unify Models
-            </button>
-          ) 
-        } 
+        {mode === "union" && (
+          <button
+            className="bg-red-500 p-2 rounded-md text-white mb-2"
+            onClick={() => {
+              executeUnionOperation();
+            }}
+          >
+            Merge/Unify Models
+          </button>
+        )}
 
         <button
           className="bg-blue-500 p-2 rounded-md text-white mb-2"
