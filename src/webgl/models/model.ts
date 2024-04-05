@@ -29,9 +29,9 @@ export abstract class Model {
 
   abstract getSpecialAttributes(): SpecialAttribute[];
 
-  abstract setGeometry(gl: WebGL2RenderingContext): void;
+  abstract setGeometry(gl: WebGLRenderingContext): void;
 
-  abstract setColors(gl: WebGL2RenderingContext): void;
+  abstract setColors(gl: WebGLRenderingContext): void;
 
   abstract getVertices(): Point[];
 
@@ -39,7 +39,7 @@ export abstract class Model {
 
   abstract count(): number;
 
-  abstract drawMode(gl: WebGL2RenderingContext): number;
+  abstract drawMode(gl: WebGLRenderingContext): number;
 
   abstract isPointInside(point: Point, tolerance: number): boolean;
 
@@ -62,7 +62,7 @@ export abstract class Model {
 
   // Draw the scene.
   draw(
-    gl: WebGL2RenderingContext,
+    gl: WebGLRenderingContext,
     program: WebGLProgram,
     attributes: {
       positionBuffer: WebGLBuffer;
@@ -82,7 +82,7 @@ export abstract class Model {
       translation: [0, 0],
       angleInRadians: 0,
       scale: [1, 1],
-      }    
+    }
   ) {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
 
@@ -151,7 +151,7 @@ export abstract class Model {
       options.translation[0],
       options.translation[1]
     );
-    let angleRotation = options.angleInRadians
+    let angleRotation = options.angleInRadians;
     if (animate) {
       angleRotation += this.counter;
       this.counter += 0.05;

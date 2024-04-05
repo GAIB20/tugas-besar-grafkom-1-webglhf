@@ -56,7 +56,7 @@ export class Polygon extends Model {
     }
 
 
-    setGeometry(gl: WebGL2RenderingContext) {
+    setGeometry(gl: WebGLRenderingContext) {
         let interleavedData: any = [];
 
         for (let i = 2; i < this.vertices.length; i++) {
@@ -72,7 +72,7 @@ export class Polygon extends Model {
         );
     }
 
-    setColors(gl: WebGL2RenderingContext): void {
+    setColors(gl: WebGLRenderingContext): void {
         let interleavedData: any = [];
 
         for (let i = 2; i < this.vertices.length; i++) {
@@ -106,7 +106,7 @@ export class Polygon extends Model {
         return 3 * (this.vertices.length - 2);
     }
 
-    drawMode(gl: WebGL2RenderingContext) {
+    drawMode(gl: WebGLRenderingContext) {
         return gl.TRIANGLES;
     }
 

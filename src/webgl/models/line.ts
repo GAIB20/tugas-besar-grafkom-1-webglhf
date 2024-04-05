@@ -22,7 +22,7 @@ export class Line extends Model {
     this.setVertices(startPoint, endPoint);
   }
 
-  setGeometry(gl: WebGL2RenderingContext): void {
+  setGeometry(gl: WebGLRenderingContext): void {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
@@ -34,7 +34,7 @@ export class Line extends Model {
     );
   }
 
-  setColors(gl: WebGL2RenderingContext): void {
+  setColors(gl: WebGLRenderingContext): void {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
@@ -109,7 +109,7 @@ export class Line extends Model {
     this.computeCenter();
   }
 
-  drawMode(gl: WebGL2RenderingContext): number {
+  drawMode(gl: WebGLRenderingContext): number {
     return gl.LINES;
   }
 

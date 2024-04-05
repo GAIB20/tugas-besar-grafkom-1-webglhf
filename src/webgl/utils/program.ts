@@ -1,7 +1,7 @@
 import { createFragmentShader, createVertexShader } from "./shader";
 
 export function createProgram(
-  gl: WebGL2RenderingContext,
+  gl: WebGLRenderingContext,
   vertexShader: WebGLShader,
   fragmentShader: WebGLShader
 ) {
@@ -23,7 +23,7 @@ export function createProgram(
   gl.deleteProgram(program);
 }
 
-export function createProgramWithShaders(gl: WebGL2RenderingContext) {
+export function createProgramWithShaders(gl: WebGLRenderingContext) {
   let vertexShader = createVertexShader(gl);
   let fragmentShader = createFragmentShader(gl);
 

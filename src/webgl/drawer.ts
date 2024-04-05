@@ -14,7 +14,7 @@ interface SelectorConfig {
 
 export class Drawer {
   private models: Model[] = [];
-  private gl: WebGL2RenderingContext | null = null;
+  private gl: WebGLRenderingContext | null = null;
   private program: WebGLProgram | null | undefined = null;
   private attributes: {
     positionBuffer: WebGLBuffer;
@@ -46,7 +46,7 @@ export class Drawer {
       return;
     }
 
-    this.gl = canvas.getContext("webgl2");
+    this.gl = canvas.getContext("webgl");
 
     if (!this.gl) {
       console.error("WebGL not supported");
@@ -108,7 +108,7 @@ export class Drawer {
 
   setAnimate(bool: boolean) {
     this.animate = bool;
-    console.log("Toggling animate" + this.animate)
+    console.log("Toggling animate" + this.animate);
     this.draw();
   }
 
@@ -154,19 +154,21 @@ export class Drawer {
 
   getSelectedVerticeIndex() {
     if (!this.selectedModel || !this.selectedVertice) {
-      console.log("No model or vertice selected")
+      console.log("No model or vertice selected");
       return -1;
     }
 
-    console.log("FINDING")
+    console.log("FINDING");
 
     return this.selectedModel.getVertices().findIndex((vertice) => {
-      console.log("VERTICE", vertice, this.selectedVertice)
-      console.log("WITHIN TOLERANCE", vertice.withinTolerance(this.selectedVertice!));
+      console.log("VERTICE", vertice, this.selectedVertice);
+      console.log(
+        "WITHIN TOLERANCE",
+        vertice.withinTolerance(this.selectedVertice!)
+      );
       // @ts-ignore
-      return vertice.withinTolerance(this.selectedVertice)
-    }
-    );
+      return vertice.withinTolerance(this.selectedVertice);
+    });
   }
 
   draw() {
@@ -193,7 +195,7 @@ export class Drawer {
 
       // console.log("Drawing model", model);
       model.draw(
-        this.gl as WebGL2RenderingContext,
+        this.gl as WebGLRenderingContext,
         this.program!!,
         this.attributes!!,
         this.animate
@@ -229,7 +231,7 @@ export class Drawer {
       selector.setColorSolid(colorToUse);
 
       selector.draw(
-        this.gl as WebGL2RenderingContext,
+        this.gl as WebGLRenderingContext,
         this.program!!,
         this.attributes!!
       );

@@ -2,7 +2,7 @@ import vertexShaderSource from "raw-loader!../shaders/vertex-shaders.glsl";
 import fragmentShaderSource from "raw-loader!../shaders/fragment-shaders.glsl";
 
 export function createShader(
-  gl: WebGL2RenderingContext,
+  gl: WebGLRenderingContext,
   type: number,
   source: string
 ) {
@@ -22,10 +22,10 @@ export function createShader(
   gl.deleteShader(shader);
 }
 
-export function createVertexShader(gl: WebGL2RenderingContext) {
+export function createVertexShader(gl: WebGLRenderingContext) {
   return createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
 }
 
-export function createFragmentShader(gl: WebGL2RenderingContext) {
+export function createFragmentShader(gl: WebGLRenderingContext) {
   return createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 }

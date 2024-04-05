@@ -131,7 +131,9 @@ export class Rectangle extends Model {
     const originalWidth = this.vertices[1].x - this.vertices[0].x;
 
     const scaleFactor = width / originalWidth;
-    const newX = this.vertices[0].x + (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
+    const newX =
+      this.vertices[0].x +
+      (this.vertices[1].x - this.vertices[0].x) * scaleFactor;
 
     this.vertices[1].x = newX;
     this.vertices[2].x = newX;
@@ -145,7 +147,9 @@ export class Rectangle extends Model {
     const originalHeight = this.vertices[2].y - this.vertices[0].y;
 
     const scaleFactor = height / originalHeight;
-    const newY = this.vertices[0].y + (this.vertices[2].y - this.vertices[0].y) * scaleFactor;
+    const newY =
+      this.vertices[0].y +
+      (this.vertices[2].y - this.vertices[0].y) * scaleFactor;
 
     this.vertices[2].y = newY;
     this.vertices[3].y = newY;
@@ -162,7 +166,7 @@ export class Rectangle extends Model {
   //   throw new Error("Not implemented");
   // }
 
-  setGeometry(gl: WebGL2RenderingContext) {
+  setGeometry(gl: WebGLRenderingContext) {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
@@ -213,11 +217,11 @@ export class Rectangle extends Model {
     return 6;
   }
 
-  drawMode(gl: WebGL2RenderingContext) {
+  drawMode(gl: WebGLRenderingContext) {
     return gl.TRIANGLES;
   }
 
-  setColors(gl: WebGL2RenderingContext): void {
+  setColors(gl: WebGLRenderingContext): void {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([

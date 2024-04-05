@@ -3,7 +3,7 @@
 <p align="center" style="border-radius: 10px; box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;">
 <img
   src="screenshots/homepage.png"
-  alt="Treasure Hunt App by Bebas"
+  alt="GLHF"
   style="display: block; margin: 0 auto; width: 100%; max-width:800; padding: 0;">
 </p>
 

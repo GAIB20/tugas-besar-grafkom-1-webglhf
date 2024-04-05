@@ -91,7 +91,7 @@ export class Square extends Model {
     this.computeCenter();
   }
 
-  setGeometry(gl: WebGL2RenderingContext) {
+  setGeometry(gl: WebGLRenderingContext) {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
@@ -132,11 +132,11 @@ export class Square extends Model {
     return 6;
   }
 
-  drawMode(gl: WebGL2RenderingContext) {
+  drawMode(gl: WebGLRenderingContext) {
     return gl.TRIANGLES;
   }
 
-  setColors(gl: WebGL2RenderingContext): void {
+  setColors(gl: WebGLRenderingContext): void {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
