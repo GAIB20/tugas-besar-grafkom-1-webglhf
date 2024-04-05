@@ -95,7 +95,6 @@ export default function Canvas() {
 
   useEffect(() => {
     setupWebGL();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const mapModeToTool = {
@@ -130,38 +129,38 @@ export default function Canvas() {
     e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>,
     rect: DOMRect
   ): Model | null {
-    if (objectToDraw === "line") {
-      return new Line(
-        new Point(e.clientX - rect.left, e.clientY - rect.top),
-        new Point(e.clientX - rect.left, e.clientY - rect.top),
-        {
-          onWidthChange: (width: number) => setWidth(Math.round(width)),
-        }
-      );
+    switch (objectToDraw) {
+      case "line":
+        return new Line(
+          new Point(e.clientX - rect.left, e.clientY - rect.top),
+          new Point(e.clientX - rect.left, e.clientY - rect.top),
+          {
+            onWidthChange: (width: number) => setWidth(Math.round(width)),
+          }
+        );
+      case "rectangle":
+        return new Rectangle(
+          new Point(e.clientX - rect.left, e.clientY - rect.top),
+          new Point(e.clientX - rect.left, e.clientY - rect.top),
+          {
+            onWidthChange: (width: number) => setWidth(Math.round(width)),
+            onHeightChange: (height: number) => setHeight(Math.round(height)),
+          }
+        );
+      case "square":
+        return new Square(
+          new Point(e.clientX - rect.left, e.clientY - rect.top),
+          new Point(e.clientX - rect.left, e.clientY - rect.top),
+          {
+            onSizeChange: (size: number) => setWidth(Math.round(size)),
+          }
+        );
+      case "polygon":
+        return null;
+      default:
+        toast.error("Model is not supported");
+        return null;
     }
-
-    if (objectToDraw === "rectangle") {
-      return new Rectangle(
-        new Point(e.clientX - rect.left, e.clientY - rect.top),
-        new Point(e.clientX - rect.left, e.clientY - rect.top),
-        {
-          onWidthChange: (width: number) => setWidth(Math.round(width)),
-          onHeightChange: (height: number) => setHeight(Math.round(height)),
-        }
-      );
-    }
-
-    if (objectToDraw === "square") {
-      return new Square(
-        new Point(e.clientX - rect.left, e.clientY - rect.top),
-        new Point(e.clientX - rect.left, e.clientY - rect.top),
-        {
-          onSizeChange: (size: number) => setWidth(Math.round(size)),
-        }
-      );
-    }
-
-    return null;
   }
 
   function handleDelete() {
@@ -179,14 +178,18 @@ export default function Canvas() {
   function instantiateModel(jsonString: string) {
     const parsedJSON = JSON.parse(jsonString);
 
-    if (parsedJSON.type === "line") {
-      return Line.fromJSON(parsedJSON);
-    } else if (parsedJSON.type === "rectangle") {
-      return Rectangle.fromJSON(parsedJSON);
-    } else if (parsedJSON.type === "square") {
-      return Square.fromJSON(parsedJSON);
-    } else if (parsedJSON.type === "polygon") {
-      return Polygon.fromJSON(parsedJSON);
+    switch (parsedJSON.type) {
+      case "line":
+        return Line.fromJSON(parsedJSON);
+      case "rectangle":
+        return Rectangle.fromJSON(parsedJSON);
+      case "square":
+        return Square.fromJSON(parsedJSON);
+      case "polygon":
+        return Polygon.fromJSON(parsedJSON);
+      default:
+        toast.error("Invalid model selected!");
+        return;
     }
   }
 
@@ -242,25 +245,6 @@ export default function Canvas() {
     reader.readAsText(file); // Read file as text
   }
 
-  // function computeDimension() {
-  //   const selectedModel = drawer?.getSelectedModel();
-
-  //   if (selectedModel?.getType() === "line") {
-  //     const line = selectedModel as Line;
-  //     setWidth(Math.round(line.getWidth()));
-  //   }
-  //   if (selectedModel?.getType() === "square") {
-  //     const square = selectedModel as Square;
-  //     setWidth(square.getSize());
-  //   }
-
-  //   if (selectedModel?.getType() === "rectangle") {
-  //     const rectangle = selectedModel as Rectangle;
-  //     setHeight(rectangle.getHeight());
-  //     setWidth(rectangle.getWidth());
-  //   }
-  // }
-
   function handleMouseDown(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
   ) {
@@ -288,7 +272,6 @@ export default function Canvas() {
 
       if (selectedModel) {
         drawer.select(selectedModel, pointSelected);
-        // computeDimension();
         setSelectedModelType(selectedModel.getType() as ModelType);
       } else if (mode === "select") {
         drawer?.unselect();
@@ -332,10 +315,11 @@ export default function Canvas() {
     }
 
     if (mode === "union" && union) {
-      if (union.getBufferSize() > 1) {
-        toast.error("You have already selected two models.");
-        return;
-      }
+      // If we want to only unify two models uncomment this part
+      // if (union.getBufferSize() > 1) {
+      //   toast.error("You have already selected two models.");
+      //   return;
+      // }
 
       const model = getModelAtPosition(e.clientX, e.clientY);
       if (model) {
@@ -343,38 +327,6 @@ export default function Canvas() {
         toast.success("Model added to union operation.");
       }
     }
-
-    // if (mode === "pointMover" && pointMover && drawer.getSelectedVertice()) {
-    //   pointMover.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    // }
-
-    // if (mode === "translate" && translator && drawer.getSelectedModel()) {
-    //   translator.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    //   return;
-    // }
-
-    // if (mode === "rotate" && rotator && drawer.getSelectedModel()) {
-    //   rotator.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    //   return;
-    // }
-
-    // if (mode === "scale" && scaler && drawer.getSelectedModel()) {
-    //   console.log("MODE SCALER");
-    //   scaler.start(
-    //     drawer.getSelectedModel() as Model,
-    //     new Point(e.clientX - rect.left, e.clientY - rect.top)
-    //   );
-    //   return;
-    // }
 
     const model = getModel(e, rect);
 
@@ -403,7 +355,7 @@ export default function Canvas() {
 
     const models = drawer.getModels();
 
-    for (let i = models.length - 1; i >= 0; i--) { // Iterate backwards to start from the topmost model
+    for (let i = models.length - 1; i >= 0; i--) {
         const model = models[i];
         if (model.isPointInside(point, 10)) {
             return model;
@@ -436,27 +388,6 @@ export default function Canvas() {
       }
     }
 
-    // if (mode === "translate" && translator) {
-    //   translator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
-    // if (mode === "rotate" && rotator) {
-    //   rotator.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
-    // if (mode === "scale" && scaler) {
-    //   console.log("MOVING SCALER");
-    //   scaler.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
-    // if (mode === "pointMover" && pointMover) {
-    //   pointMover.move(new Point(e.clientX - rect!.left, e.clientY - rect!.top));
-    //   return;
-    // }
-
     if (!startPoint || !currentDrawingModel) {
       return;
     }
@@ -473,7 +404,6 @@ export default function Canvas() {
     });
 
     drawer.draw();
-    // computeDimension();
   }
 
   function handleMouseUp(
@@ -507,30 +437,8 @@ export default function Canvas() {
       const tool = mapModeToTool[mode];
       if (tool) {
         tool.end();
-
-        // if (mode === "pointMover") {
-        //   computeDimension();
-        // }
       }
     }
-
-    // if (mode === "translate" && translator) {
-    //   translator.end();
-    // }
-
-    // if (mode === "rotate" && rotator) {
-    //   rotator.end();
-    // }
-
-    // if (mode === "scale" && scaler) {
-    //   console.log("ENDING SCALER");
-    //   scaler.end();
-    // }
-
-    // if (mode === "pointMover" && pointMover) {
-    //   pointMover.end();
-    //   computeDimension();
-    // }
 
     setCurrentDrawingModel(null);
     setStartPoint(null);
@@ -557,20 +465,23 @@ export default function Canvas() {
     console.log("NOTIFYING CHANGE" + width + " " + height);
 
     const selectedModel = drawer.getSelectedModel();
-    if (selectedModel?.getType() === "line") {
-      const line = selectedModel as Line;
-      line.setWidth(width);
-    }
-
-    if (selectedModel?.getType() === "square") {
-      const square = selectedModel as Square;
-      square.setSize(width);
-    }
-
-    if (selectedModel?.getType() === "rectangle") {
-      const rectangle = selectedModel as Rectangle;
-      rectangle.setWidth(width);
-      rectangle.setHeight(height);
+    switch (selectedModel?.getType()) {
+      case "line":
+        const line = selectedModel as Line;
+        line.setWidth(width);
+        break;
+      case "square":
+        const square = selectedModel as Square;
+        square.setSize(width);
+        break;
+      case "rectangle":
+        const rectangle = selectedModel as Rectangle;
+        rectangle.setWidth(width);
+        rectangle.setHeight(height);
+        break;
+      default:
+        toast.error("Model is not supported for this operation.")
+        break;
     }
 
     drawer.draw();
@@ -586,12 +497,6 @@ export default function Canvas() {
     clear();
     if (drawer) setTranslator(new Translator(drawer));
   }
-
-  // function handleScale() {
-  //   setMode("scale");
-  //   clear();
-  //   if (drawer) setScaler(new Scaler(drawer));
-  // }
 
   function handlePointMover() {
     if (drawer?.getSelectedVertice() === null) {
