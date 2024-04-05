@@ -18,7 +18,14 @@ import Modal from "react-modal";
 import { Polygon } from "@/webgl/models/polygon";
 import { Union } from "@/webgl/tools/union";
 
-type Mode = "draw" | "select" | "translate" | "rotate" | "pointMover" | "scale" | "union";
+type Mode =
+  | "draw"
+  | "select"
+  | "translate"
+  | "rotate"
+  | "pointMover"
+  | "scale"
+  | "union";
 type ModelType = "line" | "rectangle" | "square" | "polygon";
 
 export default function Canvas() {
@@ -29,7 +36,8 @@ export default function Canvas() {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [enableAutoConvexHull, setEnableAutoConvexHull] = useState<Boolean>(true);
+  const [enableAutoConvexHull, setEnableAutoConvexHull] =
+    useState<Boolean>(true);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -296,19 +304,27 @@ export default function Canvas() {
       }
     }
 
-    if (mode === "draw" && (objectToDraw === "polygon" || drawer.getSelectedModel()?.getType() === "polygon")){
-      console.log("DRAWING POLYGON POINTS")
-      if (drawer.getSelectedModel() === null){
-        console.log("NULL")
+    if (
+      mode === "draw" &&
+      (objectToDraw === "polygon" ||
+        drawer.getSelectedModel()?.getType() === "polygon")
+    ) {
+      console.log("DRAWING POLYGON POINTS");
+      if (drawer.getSelectedModel() === null) {
+        console.log("NULL");
         const model = new Polygon();
-        model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        model.addVertice(
+          new Point(e.clientX - rect.left, e.clientY - rect.top)
+        );
         if (enableAutoConvexHull) model.doConvexHull();
         model.isDrawing = true;
         drawer.addModel(model);
         drawer.select(model);
       } else {
         const model = drawer.getSelectedModel() as Polygon;
-        model.addVertice(new Point(e.clientX - rect.left, e.clientY - rect.top));
+        model.addVertice(
+          new Point(e.clientX - rect.left, e.clientY - rect.top)
+        );
         if (enableAutoConvexHull) model.doConvexHull();
       }
       drawer.draw();
@@ -363,7 +379,7 @@ export default function Canvas() {
     }
 
     return null;
-}
+  }
 
   function handleMouseMove(
     e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
@@ -444,7 +460,9 @@ export default function Canvas() {
     setStartPoint(null);
   }
 
-  function handleDoubleClick(e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>) {
+  function handleDoubleClick(
+    e: React.MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>
+  ) {
     drawer?.unselect();
   }
 
@@ -579,13 +597,13 @@ export default function Canvas() {
 
   function executeUnionOperation() {
     if (union && union.getBufferSize() < 2) {
-      toast.error("You must select two models to unify.");
+      toast.error("You must select minimum of two models to unify.");
       return;
     }
-    
+
     if (union) {
-        union.executeUnion();
-        toast.success("Union operation completed.");
+      union.executeUnion();
+      toast.success("Union operation completed.");
     }
   }
 
@@ -642,7 +660,7 @@ export default function Canvas() {
       );
     } else if (selectedModelType === "polygon") {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           <button
             className="bg-blue-500 p-2 rounded-md text-white mt-2"
             onClick={() => {
@@ -650,7 +668,7 @@ export default function Canvas() {
               if (selectedModel) {
                 selectedModel.doConvexHull();
                 drawer?.draw();
-                toast.success("Successfully created a convex hull")
+                toast.success("Successfully created a convex hull");
               }
             }}
           >
@@ -683,15 +701,17 @@ export default function Canvas() {
 
   return (
     <>
-      <canvas
-        ref={canvasRef}
-        id="webgl-canvas"
-        className="w-full h-full bg-gray-200"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onDoubleClick={handleDoubleClick}
-      />
+      <div className="w-full h-full max-h-screen overflow-auto">
+        <canvas
+          ref={canvasRef}
+          id="webgl-canvas"
+          className="w-[1920px] h-[1080px] bg-gray-200"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onDoubleClick={handleDoubleClick}
+        />
+      </div>
 
       <div className="flex flex-col h-full rounded-md bg-gray-black p-4">
         <label
@@ -716,19 +736,20 @@ export default function Canvas() {
           <option value="polygon">Draw Polygon</option>
         </select>
 
-        { (objectToDraw === "polygon") &&
-          (
-            <button
-              className={`${enableAutoConvexHull ? 'bg-red-500' : 'bg-green-500'} p-2 rounded-md text-white mb-2`}
-              onClick={ (_) => {
-                  setEnableAutoConvexHull(!enableAutoConvexHull)
-                }
-              }
-              >
-                {enableAutoConvexHull ? 'Disable Auto Convex Hull' : 'Enable Auto Convex Hull'}
-            </button>
-          )
-        }
+        {objectToDraw === "polygon" && (
+          <button
+            className={`${
+              enableAutoConvexHull ? "bg-red-500" : "bg-green-500"
+            } p-2 rounded-md text-white mb-2`}
+            onClick={(_) => {
+              setEnableAutoConvexHull(!enableAutoConvexHull);
+            }}
+          >
+            {enableAutoConvexHull
+              ? "Disable Auto Convex Hull"
+              : "Enable Auto Convex Hull"}
+          </button>
+        )}
 
         <label
           htmlFor="mode"
@@ -752,18 +773,16 @@ export default function Canvas() {
           <option value="animate">Animate!</option>
         </select>
 
-        { (mode === "union") &&
-          (
-            <button
-              className="bg-red-500 p-2 rounded-md text-white mb-2"
-              onClick={() => {
-                executeUnionOperation();
-              }}
-            >
-              Merge/Unify Models
-            </button>
-          ) 
-        } 
+        {mode === "union" && (
+          <button
+            className="bg-red-500 p-2 rounded-md text-white mb-2"
+            onClick={() => {
+              executeUnionOperation();
+            }}
+          >
+            Merge/Unify Models
+          </button>
+        )}
 
         <button
           className="bg-blue-500 p-2 rounded-md text-white mb-2"
